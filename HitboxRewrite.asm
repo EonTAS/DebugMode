@@ -458,3 +458,36 @@ DrawSphereEnds:
   	%DrawPart(HemiSpherePosAttr, HemiSphereNrmAttr, HemiSpherePosList, HemiSpherePosListSize, End2MatrixOffset)
   	
 }
+
+DebugFileLoader [Eon]
+	.PO<-FileLoader
+	.BA<-FileName
+	54010000 00000000 #Write BA to PO, aka write address of Filename to the FileLoader chunk
+    .GOTO->LoadFile
+FileName:
+    string "/../Debug/sphere.bin"
+FileLoader:
+	word 0; #File Path Address, loaded by gecko above
+	word 0;
+	word 0;
+	word 0x80577060; #Address Where the file is loaded to
+	word 0;
+LoadFile:
+
+HOOK @ $800B08A0
+{
+	mflr r0 			#backup link register
+	bl 0x4 				#\get Address of current execution
+	mflr r3 			#/
+	mtlr r0 			#return original link register
+	subi r3, r3, 0x28 	#r3 = FileLoader
+
+	lwz r4, 0xC(r3) 	#address where file is to be loaded
+	lwz r4, 0x0(r4) 	#beginning of file loaded 
+	cmpwi r4, 0 		#if beginning has data, exit 
+	bnelr
+	lis r0, 0x8001    	#readFile
+	ori r0, r0, 0xBF0C
+	mtctr r0          
+	bctr
+}
