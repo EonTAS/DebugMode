@@ -1,3 +1,4 @@
+Draw Capsule [Eon, Masahiro Sakurai, Unpaid intern 3]
 #DisplayBubble(Double Radius, Float[3][4] ScaleMatrix, Float[3] Pos1, Float[3] Pos2, Byte[4] Colour1, Byte[4] Colour2, Float[3][4] ViewingMatrix)
 .macro callFunc(<addr>) 
 {
@@ -206,7 +207,7 @@ HOOK @ $801F4980
 .alias HemiSpherePosList	= 0x20
 .alias HemiSpherePosListSize= 0xA0
 
-.macro DrawPart(<dataOffsetPosAttr>, <dataOffsetNrmAttr>, <dataOffsetPos>, <posListSize>, <matrixOffset>)
+.macro DrawPart(<dataOffsetPosAttr>, <dataOffsetNrmAttr>, <dataOffsetPos>, <posListSize>, <matrixOffset>, VTXAttrFMTThing)
 {
   	%GXClearVtxDesc()
   	li r3, 9
@@ -250,7 +251,6 @@ HOOK @ $801F4980
   	li r4, <posListSize>
   	%GXCallDisplayList();
 }
-
 	fmr Radius, f1
 	mr Pos1, r4
 	mr Pos2, r5
@@ -428,9 +428,9 @@ checkDistanceZero:
 	#if absolute distance is neglibly small, draw a sphere
 	lfs f1, nearZeroPositive(dataBlock) #0.000000001
 	lfs f2, nearZeroNegative(dataBlock) #-0.000000001
-	fcmpo distance, f1
+	fcmpo cr0, distance, f1
 	blt drawSphere
-	fcmpo distance, f2
+	fcmpo cr0, distance, f2
 	bgt drawSphere
 
 	#set basis2 to perpendicular of diffPos
@@ -439,24 +439,23 @@ checkDistanceZero:
 	stfs f0, 0x4(basis2)
 	stfs f4, 0x0(basis2)
 
-
 	#if each individual distance is negligibly small, draw a sphere (unsure if this is needed, i think this is melee devs being dumb)
-	fcmpo f3, f1
+	fcmpo cr0, f3, f1
 	bgt drawCapsule
-	fcmpo f3, f2
+	fcmpo cr0, f3, f2
 	blt drawCapsule	
-	fcmpo f4, f1
+	fcmpo cr0, f4, f1
 	bgt drawCapsule
-	fcmpo f4, f2
+	fcmpo cr0, f4, f2
 	blt drawCapsule
 	#both X and Y are zero, so to get a perpendicular basis, set X to positive
 	stfs f5, 0x0(basis2)
 	li r0, 0
 	stw r0, 0x4(basis2)
 
-	fcmpo f5, f1
+	fcmpo cr0, f5, f1
 	bgt drawCapsule
-	fcmpo f5, f2
+	fcmpo cr0, f5, f2
 	blt drawCapsule
 drawSphere:
 	addi r3, r1, End1MatrixOffset
@@ -472,7 +471,6 @@ drawSphere:
 	#addi r4, r1, End2MatrixOffset
 	#%PSMTXCopy()
 	b DrawSphereEnds
-
 
 drawCapsule:
 	fmr f1, distance
@@ -492,6 +490,7 @@ drawCapsule:
 	mr r5, basis3
 	%PSVECCrossProduct()
 	
+
 	#tempMatrix = 
 	#diffPos[0], basis2[0], basis3[0], 0
 	#diffPos[1], basis2[1], basis3[1], 0
@@ -585,7 +584,7 @@ drawCapsule:
 	addi r5, r1, CylinderMatrixOffset
 	%PSMTXConcat()
 
-  	%DrawPart(CylinderPosAttr, CylinderNrmAttr, CylinderPosList, CylinderPosListSize, CylinderMatrixOffset)
+  	%DrawPart(CylinderPosAttr, CylinderNrmAttr, CylinderPosList, CylinderPosListSize, CylinderMatrixOffset, 0x6)
 
 DrawSphereEnds:
 	lfs f1, 0x0(Pos1)
@@ -614,8 +613,8 @@ DrawSphereEnds:
 	addi r5, r1, End2MatrixOffset
 	%PSMTXConcat()
 
-  	%DrawPart(HemiSpherePosAttr, HemiSphereNrmAttr, HemiSpherePosList, HemiSpherePosListSize, End1MatrixOffset)
-  	%DrawPart(HemiSpherePosAttr, HemiSphereNrmAttr, HemiSpherePosList, HemiSpherePosListSize, End2MatrixOffset)
+  	%DrawPart(HemiSpherePosAttr, HemiSphereNrmAttr, HemiSpherePosList, HemiSpherePosListSize, End1MatrixOffset, 0xE)
+  	%DrawPart(HemiSpherePosAttr, HemiSphereNrmAttr, HemiSpherePosList, HemiSpherePosListSize, End2MatrixOffset, 0xE)
   	
 }
 
