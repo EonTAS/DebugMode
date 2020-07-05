@@ -1,5 +1,166 @@
 #DisplayBubble(Double Radius, Float[3][4] ScaleMatrix, Float[3] Pos1, Float[3] Pos2, Byte[4] Colour1, Byte[4] Colour2, Float[3][4] ViewingMatrix)
-HOOK @ $asdfasdf
+.macro callFunc(<addr>) 
+{
+.alias temp_Hi = <addr> / 0x10000
+.alias temp_Lo = <addr> & 0xFFFF
+  lis r12, temp_Hi
+  ori r12, r12, temp_Lo
+  mtctr r12
+  bctrl	
+}
+#GX Functions
+.macro GXClearVtxDesc() 
+{
+	%callFunc(0x801efb10)
+}
+.macro GXSetArray()
+{
+	%callFunc(0x801f0208)
+}
+.macro GXSetVtxDesc()
+{
+	%callFunc(0x801ef280)
+}
+.macro GXSetVtxAttrFmt()
+{
+	%callFunc(0x801efb44)
+}
+.macro GXLoadPosMtxImm()
+{
+	%callFunc(0x801f51dc)
+}
+.macro GXLoadNrmMtxImm()
+{
+	%callFunc(0x801f5258)
+}
+.macro GXCallDisplayList()
+{
+	%callFunc(0x801f4eac)
+}
+.macro GXSetColorUpdate()
+{
+	%callFunc(0x801f471c)
+}
+.macro GXSetAlphaUpdate()
+{
+	%callFunc(0x801f4748)
+}
+.macro GXSetFog()
+{
+	%callFunc(0x801f421c)
+}
+.macro GXSetBlendMode()
+{
+	%callFunc(0x801f46cc)
+}
+.macro GXSetAlphaCompare()
+{
+	%callFunc(0x801f3fd8)
+}
+.macro GXSetZMode()
+{
+	%callFunc(0x801f4774)
+}
+.macro GXSetZCompLoc()
+{
+	%callFunc(0x801f47a8)
+}
+.macro GXSetNumTexGens()
+{
+	%callFunc(0x801f0480)
+}
+.macro GXSetNumTevStages()
+{
+	%callFunc(0x801f41f8)
+}
+.macro GXSetTevOrder()
+{
+	%callFunc(0x801f409c)
+}
+.macro GXSetTevColor()
+{
+	%callFunc(0x801f3d60)
+}
+.macro GXSetTevColorIn()
+{
+	%callFunc(0x801f3c30)
+}
+.macro GXSetTevColorOp()
+{
+	%callFunc(0x801f3cb0)
+}
+.macro GXSetTevAlphaOp()
+{
+	%callFunc(0x801f3d08)
+}
+.macro GXSetNumChans()
+{
+	%callFunc(0x801f2644)
+}
+.macro GXSetChanAmbColor()
+{
+	%callFunc(0x801f2494)
+}
+.macro GXSetChanMatColor()
+{
+	%callFunc(0x801f256c)
+}
+.macro GXSetChanCtrl()
+{
+	%callFunc(0x801f2668)
+}
+.macro GXSetCullMode()
+{
+	%callFunc(0x801f136c)
+}
+
+#PSMTX Functions
+.macro PSMTXInverse()
+{
+	%callFunc(0x801ec41c)
+}
+.macro PSMTXMultVec()
+{
+	%callFunc(0x801ecd70)
+}
+.macro PSMTXScale()
+{
+	%callFunc(0x801ec8b4)
+}
+.macro PSMTXIdentity()
+{
+	%callFunc(0x801ec158)
+}
+.macro PSMTXConcat()
+{
+	%callFunc(0x801ec1b8)
+}
+.macro PSMTXCopy()
+{
+	%callFunc(0x801ec184)
+}
+.macro PSMTXTrans()
+{
+	%callFunc(0x801ec834)
+}
+#PSVEC Functions
+.macro PSVECNormalize()
+{
+	%callFunc(0x801ed008)
+}
+.macro PSVECCrossProduct()
+{
+	%callFunc(0x801ed0b0)
+}
+
+
+#Generic Functions
+.macro rsqrtf()
+{
+	%callFunc(0x8003db58)
+}
+
+HOOK @ $801F4980
 {
 #doubles 
 .alias Radius 				= 31
@@ -160,7 +321,7 @@ SetGXSettings:
 	%GXSetTevOrder()
 	li r3, 1
 	lwz r4, 0x0(Colour1)
-	%GXSetTevColor();
+	%GXSetTevColor()
 	li r3, 0
 	li r4, 0xF
 	li r5, 10
@@ -192,7 +353,6 @@ SetGXSettings:
 	li r3, 4
 	lwz r4, 0x0(Colour2)
 	%GXSetChanAmbColor();
-
 	li r3, 4
 	li r0, -1
 	addi r4, r1, 0xC
@@ -312,7 +472,7 @@ drawSphere:
 	#addi r4, r1, End2MatrixOffset
 	#%PSMTXCopy()
 	b DrawSphereEnds
-	
+
 
 drawCapsule:
 	fmr f1, distance
