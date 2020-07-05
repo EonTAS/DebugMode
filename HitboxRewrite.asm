@@ -120,6 +120,10 @@ Draw Capsule [Eon, Masahiro Sakurai, Unpaid intern 3]
 {
 	%callFunc(0x801ec41c)
 }
+.macro PSMTXInvXpose()
+{
+	%callFunc(0x801ec514)
+}
 .macro PSMTXMultVec()
 {
 	%callFunc(0x801ecd70)
@@ -576,8 +580,8 @@ E0 00 00 00
 .alias HemiSpherePosListSize= 0x120
 
 .alias dataBlockLoc = 0x80656000
-
-.macro DrawPart(<dataOffsetPosAttr>, <dataOffsetNrmAttr>, <dataOffsetPos>, <posListSize>, <matrixOffset>, VTXAttrFMTThing)
+  	
+.macro DrawPart(<dataOffsetPosAttr>, <dataOffsetNrmAttr>, <dataOffsetPos>, <posListSize>, <matrixOffset>, <VTXAttrFmtThing>)
 {
   	%GXClearVtxDesc()
   	li r3, 9
@@ -615,12 +619,30 @@ E0 00 00 00
   	%GXLoadPosMtxImm();
   	addi r3, r1, <matrixOffset>
   	mr r4, r3
-  	%PSMTXInvXpose(<matrix>,<matrix>)
-  	%GXLoadNrmMtxImm(<matrix>,0)
+  	%PSMTXInvXpose()
+	addi r3, r1, <matrixOffset>
+	li r4, 0
+  	%GXLoadNrmMtxImm()
   	addi r3, dataBlock, <dataOffsetPos> 
   	li r4, <posListSize>
   	%GXCallDisplayList();
 }
+
+#30, 31 in floats = 2 * 0x8
+#22-31 in ints = 10*0x4 
+#0x110 assigned in stack
+#0x110 -> 0x138 = ints
+#0x138 -> 0x148 = floats
+
+
+
+	stwu r1, -0x150(r1)
+	mflr r0
+	stw r0, 0x154(r1)
+	stmw r22, 0x110(r1)
+	stfd f31, 0x138(r1)
+	stfd f30, 0x140(r1) 
+
 	fmr Radius, f1
 	mr Pos1, r4
 	mr Pos2, r5
@@ -636,9 +658,9 @@ E0 00 00 00
 	stw r3, 0x4(basis2)
 	stw r3, 0x8(basis2)
 
-	lis dataBlock, 0x8065
-	ori dataBlock, dataBlock, 0x6000
-	
+	lis dataBlock, 0x8054
+	ori dataBlock, dataBlock, 0x8400
+
 	mr Colour1, r6
 	mr Colour2, r7
 
@@ -648,9 +670,9 @@ SetGXSettings:
 	li r3, 0
 	%GXSetAlphaUpdate();				
 	lfs f1, zero(dataBlock) # f1 = 0
-	mr f2, f1
-	mr f3, f1
-	mr f4, f1
+	fmr f2, f1
+	fmr f3, f1
+	fmr f4, f1
 	li r3, 0
 	addi r4, r1, 0xC
 	stw r3, 0x0(r4)
@@ -690,7 +712,7 @@ SetGXSettings:
 	li r6, 4
 	%GXSetTevOrder()
 	li r3, 1
-	lwz r4, 0x0(Colour1)
+	mr r4, Colour1
 	%GXSetTevColor()
 	li r3, 0
 	li r4, 0xF
@@ -721,7 +743,8 @@ SetGXSettings:
 	li r3, 1
 	%GXSetNumChans();
 	li r3, 4
-	lwz r4, 0x0(Colour2)
+	mr r4, Colour2
+	#lwz r4, 0x0(Colour2)
 	%GXSetChanAmbColor();
 	li r3, 4
 	li r0, -1
@@ -753,12 +776,12 @@ startShapeConstruction:
   	%PSMTXInverse()
 
   	addi r3, r1, TempMatrixOffset
-  	mr r5, Pos1
+  	mr r4, Pos1
   	addi r5, r1, Pos1Offset
   	mr Pos1, r5
   	%PSMTXMultVec()
   	addi r3, r1, TempMatrixOffset
-  	mr r5, Pos2
+  	mr r4, Pos2
   	addi r5, r1, Pos2Offset
   	mr Pos2, r5
   	%PSMTXMultVec()
@@ -800,8 +823,12 @@ checkDistanceZero:
 	lfs f2, nearZeroNegative(dataBlock) #-0.000000001
 	fcmpo cr0, distance, f1
 	blt drawSphere
-	fcmpo cr0, distance, f2
-	bgt drawSphere
+#	fcmpo cr0, distance, f2
+#	bgt drawSphere
+	#reload dif in positions
+	lfs f3, 0x0(diffPos)
+	lfs f4, 0x4(diffPos)
+	lfs f5, 0x8(diffPos)
 
 	#set basis2 to perpendicular of diffPos
 	lfs f0, minusOne(dataBlock) #-1
@@ -831,7 +858,7 @@ drawSphere:
 	addi r3, r1, End1MatrixOffset
 	%PSMTXIdentity()
 	addi r3, r1, End1MatrixOffset
-	lis r4, 0xDF80
+	lis r4, 0xbF80
 	stw r4, 0x0(r3)
 	stw r4, 0x28(r3)
 	addi r4, r1, RadiusMatrixOffset
@@ -936,7 +963,7 @@ drawCapsule:
 	fadds f1, f0, f1
 	lfs f2, 0x4(Pos1)
 	lfs f0, 0x4(Pos2)
-	fadds f2, f0, f3
+	fadds f2, f0, f2
 	lfs f3, 0x8(Pos1)
 	lfs f0, 0x8(Pos2)
 	fadds f3, f0, f3
@@ -951,7 +978,8 @@ drawCapsule:
 	mr r5, r4
 	%PSMTXConcat()
 	mr r3, ScaleMatrix
-	addi r5, r1, CylinderMatrixOffset
+	addi r4, r1, CylinderMatrixOffset
+	mr r5, r4
 	%PSMTXConcat()
 
   	%DrawPart(CylinderPosAttr, CylinderNrmAttr, CylinderPosList, CylinderPosListSize, CylinderMatrixOffset, 0x6)
@@ -967,7 +995,8 @@ DrawSphereEnds:
 	mr r5, r4
 	%PSMTXConcat()
 	mr r3, ScaleMatrix
-	addi r5, r1, End1MatrixOffset
+	addi r4, r1, End1MatrixOffset
+	mr r5, r4
 	%PSMTXConcat()
 
 	lfs f1, 0x0(Pos2)
@@ -980,12 +1009,21 @@ DrawSphereEnds:
 	mr r5, r4
 	%PSMTXConcat()
 	mr r3, ScaleMatrix
-	addi r5, r1, End2MatrixOffset
+	addi r4, r1, End2MatrixOffset
+	mr r5, r4
 	%PSMTXConcat()
 
   	%DrawPart(HemiSpherePosAttr, HemiSphereNrmAttr, HemiSpherePosList, HemiSpherePosListSize, End1MatrixOffset, 0xE)
   	%DrawPart(HemiSpherePosAttr, HemiSphereNrmAttr, HemiSpherePosList, HemiSpherePosListSize, End2MatrixOffset, 0xE)
-  	
+
+	
+	lmw r22, 0x110(r1)
+	lfd f31, 0x138(r1)
+	lfd f30, 0x140(r1)
+	lwz r0, 0x154(r1)
+	mtlr r0
+	addi r1, r1, 0x150
+	blr
 }
 
 DebugFileLoader [Eon]
@@ -999,7 +1037,7 @@ FileLoader:
 	word 0; #File Path Address, loaded by gecko above
 	word 0;
 	word 0;
-	word 0x80656720; #Address Where the file is loaded to
+	word 0x80548400; #Address Where the file is loaded to
 	word 0;
 LoadFile:
 
@@ -1012,11 +1050,107 @@ HOOK @ $800B08A0
 	subi r3, r3, 0x28 	#r3 = FileLoader
 
 	lwz r4, 0xC(r3) 	#address where file is to be loaded
-	lwz r4, 0x0(r4) 	#beginning of file loaded 
-	cmpwi r4, 0 		#if beginning has data, exit 
+	lbz r0, -1(r4) 	#beginning of file loaded 
+	cmpwi r0, 1 		#if beginning has data, exit 
 	bnelr
+	li r0, 1
+	stb r0, -1(r4)
 	lis r12, 0x8001    	#readFile
 	ori r12, r12, 0xBF0C
 	mtctr r12          
 	bctr
 }
+Capsule 
+HOOK @ $8070d2a8
+{
+	stwu r1, -0x20(r1)
+	mflr r0
+	stw r0, 0x24(r1)
+	stmw r28, 0x10(r1)
+	#Stack Layout
+	#	0	4	8	C
+	#00 [  ][  ][  ][  ]
+	#10 [   r28-r31    ]
+	#20 [  ][lr][  ][  ]
+	mr r28, r3 #Sphere Object
+	mr r29, r4 #ViewingMatrix
+	mr r30, r5 #Colour1
+	mr r31, r6 #Colour2
+
+	addi r3, r28, 0x40 	#ScaleMatrix
+	addi r4, r28, 0 	#Pos1
+	addi r5, r28, 0x34 	#Pos2
+	mr r6, r30
+	mr r7, r31
+	mr r8, r29
+	lfs f1, 0xC(r28) #radius
+	#DisplayBubble(Double Radius, Float[3][4] ScaleMatrix, Float[3] Pos1, Float[3] Pos2, Byte[4] Colour1, Byte[4] Colour2, Float[3][4] ViewingMatrix)
+	lis r12, 0x801F
+	ori r12, r12, 0x4980
+	mtctr r12
+	bctrl
+	
+
+	lmw r28, 0x10(r1)
+	lwz r0, 0x24(r1)
+	mtlr r0
+	addi r1, r1, 0x20
+	blr
+}
+Sphere 
+HOOK @ $8070de4c
+{
+	stwu r1, -0x50(r1)
+	mflr r0
+	stw r0, 0x54(r1)
+	stmw r28, 0x40(r1)
+	#Stack Layout
+	#	0	4	8	C
+	#00 required stuff to leave alone
+	#10 [‾‾‾‾‾‾‾‾‾‾‾‾‾‾]
+	#20 [  3x4 Matrix  ]
+	#30 [______________]
+	#40 [   r28-r31    ]
+	#50   	[lr]
+	mr r28, r3 #Sphere Object
+	mr r29, r4 #ViewingMatrix
+	mr r30, r5 #Colour1
+	mr r31, r6 #Colour2
+
+
+
+	#Pos1 = 0x0(r3)
+	#Pos2 = 0x34(r3)
+	#Colour1 = r5
+	#Colour2 = r6
+	#ScaleMatrix = Identity, Capsules this is 0x40
+	addi r3, r1, 0x10
+	#PSMTXIdentity()
+	lis r12, 0x801e
+	ori r12, r12, 0xc158
+	mtctr r12
+	bctrl 
+
+	#addi r3, r28, 0x40 	#ScaleMatrix
+	addi r4, r28, 0 	#Pos1
+	addi r5, r28, 0x34 	#Pos2
+	mr r6, r30
+	mr r7, r31
+	mr r8, r29
+	lfs f1, 0xC(r28) #radius
+	#DisplayBubble(Double Radius, Float[3][4] ScaleMatrix, Float[3] Pos1, Float[3] Pos2, Byte[4] Colour1, Byte[4] Colour2, Float[3][4] ViewingMatrix)
+	lis r12, 0x801F
+	ori r12, r12, 0x4980
+	mtctr r12
+	bctrl
+	
+
+	lmw r28, 0x40(r1)
+	lwz r0, 0x54(r1)
+	mtlr r0
+	addi r1, r1, 0x50
+	blr
+}
+#X,Y,Z 
+
+#21,58,0.5
