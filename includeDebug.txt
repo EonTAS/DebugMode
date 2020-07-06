@@ -1,10 +1,12 @@
 
 .include "source/Extras/DebugMode/Camera(unfinished).asm"
 .include "source/Extras/DebugMode/Collision Manager Render Debug.asm"
+#.include "source/Extras/DebugMode/Display Capsule Sphere.asm"
 .include "source/Extras/DebugMode/Hurtboxes Hitboxes.asm"
 .include "source/Extras/DebugMode/renderDebug.asm"
 .include "source/Extras/DebugMode/soGroundModule.asm"
-.include "source/Extras/DebugMode/Capsule Renderer.asm"
+#.include "source/Extras/DebugMode/SphereFunc.asm"
+.include "source/Extras/DebugMode/HitboxRewrite.asm"
 .include "source/Extras/DebugMode/Stage Object.asm"
 .include "source/Extras/DebugMode/Stage(unfinished).asm"
 .include "source/Extras/DebugMode/Toggles.asm"
