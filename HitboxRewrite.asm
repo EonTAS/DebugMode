@@ -114,6 +114,10 @@ Draw Capsule [Eon, Masahiro Sakurai, Unpaid intern 3]
 {
 	%callFunc(0x801f136c)
 }
+.macro GXSetTevAlphaIn()
+{
+	%callFunc(0x801F3C70)
+}
 
 #PSMTX Functions
 .macro PSMTXInverse()
@@ -722,8 +726,8 @@ SetGXSettings:
 	%GXSetTevColorIn();
 	li r3, 0
 	li r4, 7
-	li r5, 6
-	li r6, 1
+	li r5, 1
+	li r6, 4
 	li r7, 7
 	%GXSetTevAlphaIn()
 	li r3, 0
@@ -1052,7 +1056,7 @@ HOOK @ $800B08A0
 	lwz r4, 0xC(r3) 	#address where file is to be loaded
 	lbz r0, -1(r4) 	#beginning of file loaded 
 	cmpwi r0, 1 		#if beginning has data, exit 
-	bnelr
+	beqlr
 	li r0, 1
 	stb r0, -1(r4)
 	lis r12, 0x8001    	#readFile
