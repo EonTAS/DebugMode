@@ -22,6 +22,27 @@ renderDebug/[Stage]
 	bctrl
 
 }
+.macro drawPoint(<Offset>, <size>, <colour>)
+{
+.alias temp_Hi = <colour> / 0x10000
+.alias temp_Lo = <colour> & 0xFFFF
+	lis r3, temp_Hi
+	ori r3, r3, temp_Lo
+	stw r3, 0x8(r1)
+
+	lis r3, <size>
+	stw r3, <Offset>+0x8(r1)
+	lfs f1, -0x68CC(r2)
+	addi r3, r1, <Offset>
+	addi r4, r1, 0x08
+	li r5, 0
+	lis r12, 0x8004
+	ori r12, r12, 0x15E8
+	mtctr r12
+	bctrl
+}
+
+#8154e320
 HOOK @ $8092d4bc
 {
 	stwu r1, -0x0040(r1)
@@ -103,6 +124,32 @@ HOOK @ $8092d4bc
 	%drawPart(0x24, 0x2C, 0x24, 0x28, 1)
 	%drawPart(0x24, 0x28, 0x20, 0x28, 1)
 
+	li r30, 0
+charLoop:
+	mr r3, r31
+	addi r4, r1, 0x20
+	mr r5, r30
+	lis r12, 0x8092
+	ori r12, r12, 0xDE30
+	mtctr r12
+	bctrl
+
+	#maybe make offset by camera location? since 
+	%drawPoint(0x20, 0x4040, 0x0000D0FF)
+
+	mr r3, r31
+	addi r4, r1, 0x20
+	mr r5, r30
+	lis r12, 0x8092
+	ori r12, r12, 0xDE6C
+	mtctr r12
+	bctrl
+
+	%drawPoint(0x20, 0x4040, 0x00A0A0FF)
+
+	addi r30, r30, 1
+	cmpwi r30, 4
+	blt charLoop
 end:
 	lwz r0, 0x0044(r1)
 	lwz r31, 0x0040(r1)
