@@ -709,7 +709,7 @@ data:
 	blrl
 }
 	.GOTO->skip
-    string "/../Source/Extras/DebugMode/sphere.bin"
+    string "/../Source/Extras/DebugMode/debug.bin"
 skip:
 Capsule 
 HOOK @ $8070d2a8
