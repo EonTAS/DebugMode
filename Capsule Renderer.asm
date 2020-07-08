@@ -729,6 +729,7 @@ HOOK @ $8070d2a8
 	mr r31, r6 #Colour2
 
 	#DisplayBubble(Double Radius, Float[3][4] ScaleMatrix, Float[3] Pos1, Float[3] Pos2, Byte[4] Colour1, Byte[4] Colour2, Float[3][4] ViewingMatrix)
+	#0x80541fa0
 	lfs f1, 0xC(r28) #radius
 	
 	addi r3, r28, 0x40 	#ScaleMatrix
@@ -771,6 +772,7 @@ HOOK @ $8070de4c
 	mr r31, r6 #Colour2
 
 	#PSMTXIdentity(Matrix* input)
+	#0x801EC158
 	addi r3, r1, 0x10
 	lis r12, 0x801e
 	ori r12, r12, 0xc158
@@ -778,6 +780,7 @@ HOOK @ $8070de4c
 	bctrl 
 
 	#DisplayBubble(Double Radius, Float[3][4] ScaleMatrix, Float[3] Pos1, Float[3] Pos2, Byte[4] Colour1, Byte[4] Colour2, Float[3][4] ViewingMatrix)
+	#0x80541FA0
 	lfs f1, 0xC(r28) 	#radius
 
 	addi r3, r1, 0x10 	#ScaleMatrix
@@ -787,7 +790,7 @@ HOOK @ $8070de4c
 	mr r7, r31
 	mr r8, r29
 
-	#$80541FA0
+	
 	lis r12, 0x8054
 	ori r12, r12, 0x1fa0
 	mtctr r12

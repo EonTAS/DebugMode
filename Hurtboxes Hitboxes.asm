@@ -1,4 +1,13 @@
 renderDebug/[soCollisionAttackModuleImpl]
+.macro callFunc(<addr>) 
+{
+.alias temp_Hi = <addr> / 0x10000
+.alias temp_Lo = <addr> & 0xFFFF
+  lis r12, temp_Hi
+  ori r12, r12, temp_Lo
+  mtctr r12
+  bctrl	
+}
 HOOK @ $8074BDB0
 {
 	stwu r1, -0x50(r1)
@@ -63,7 +72,7 @@ loop:
 	mr r5, r3
 	mr r3, r31
 	addi r4, r1, 8
-	bl debugDisplaySoCollisionAttackPart
+	%callFunc(0x80541fa4)
 	
 iterate:
 	addi r30, r30, 1
@@ -84,8 +93,10 @@ end:
 	mtlr r0
 	addi r1, r1, 80
 	blr 
+}
 
-#gotta implement interpolation myself?
+HOOK @ $80541fa4
+{
 debugDisplaySoCollisionAttackPart:
 	stwu r1, -0x20(r1)
 	mflr r0
@@ -121,6 +132,15 @@ skip:
 }
 
 renderDebug/[soCollisionHitModuleImpl]
+.macro callFunc(<addr>) 
+{
+.alias temp_Hi = <addr> / 0x10000
+.alias temp_Lo = <addr> & 0xFFFF
+  lis r12, temp_Hi
+  ori r12, r12, temp_Lo
+  mtctr r12
+  bctrl	
+}
 HOOK @ $80750F58
 {
 	stwu r1, -0x50(r1)
@@ -184,7 +204,7 @@ loop:
 	mr r4, r29
 	mr r5, r30
 	addi r6, r1, 0x8
-	bl renderDebugSoCollisionHitGroup
+	%callFunc(0x80541fa8)
 iterate:
 	addi r30, r30, 1
 checkLoop:
@@ -199,7 +219,9 @@ end:
 	mtlr r0
 	addi r1, r1, 0x50
 	blr 
-
+}
+HOOK @ $80541fa8
+{
 renderDebugSoCollisionHitGroup:
 	stwu r1, -0x30(r1)
 	mflr r0
@@ -235,7 +257,7 @@ renderDebugSoCollisionHitGroup:
 	mr	r6, r31
 	mr r7, r28
 
-	bl renderDebugSoCollisionHitGroupInner
+	%callFunc(0x80541fac)
 	
 endInner:
 	lwz r0, 0x34(r1)
@@ -246,7 +268,9 @@ endInner:
 	mtlr r0
 	addi r1, r1, 0x30
 	blr 
-
+}
+HOOK @ $80541fac
+{
 renderDebugSoCollisionHitGroupInner:
 	stwu r1, -0x40(r1)
 	mflr r0
@@ -293,7 +317,7 @@ renderDebugSoCollisionHitGroupLoop:
 	mr r4, r26
 	mr r6, r27
 	mr r7, r28
-	bl debugDisplaySoCollisionHitPart
+	%callFunc(0x80541fb0)
 renderDebugSoCollisionHitGroupIterate:
 	addi r22, r22, 1
 renderDebugSoCollisionHitGroupLoopCheck:
@@ -311,7 +335,9 @@ renderDebugSoCollisionHitGroupEnd:
 	mtlr r0
 	addi r1, r1, 0x40
 	blr 
-
+}
+HOOK @ $80541fb0
+{
 debugDisplaySoCollisionHitPart:
 	stwu r1, -0x40(r1)
 	mflr r0

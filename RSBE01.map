@@ -3,6 +3,20 @@
 80541F9C 00000004 80541F9C 0 readDebugFlag/[debug]
 80541fa0 00000004 80541FA0 0 drawBubble/[debug] (Double Radius, Float[3][4] ScaleMatrix, Float[3] Pos1, Float[3] Pos2, Byte[4] Colour1, Byte[4] Colour2, Float[3][4] ViewingMatrix)
 
+80541Fa4 00000004 80541fa4 0 debugDisplay/[soCollisionAttackPart]/[debug]
+80541Fa8 00000004 80541fa8 0 renderDebug/[soCollisionhitGroup]/[debug]
+80541FaC 00000004 80541fac 0 renderDebugInner/[soCollisionHitGroupInner]/[debug]
+80541Fb0 00000004 80541Fb0 0 debugDisplay/[soCollisionHitPart]/[debug]
+80541Fb4 00000004 80541Fb4 0 temp5/[debug]
+80541Fb8 00000004 80541Fb8 0 temp6/[debug]
+80541Fbc 00000004 80541Fbc 0 temp7/[debug]
+80541Fc0 00000004 80541Fc0 0 temp8/[debug]
+80541Fc4 00000004 80541Fc4 0 temp9/[debug]
+80541Fc8 00000004 80541Fc8 0 temp10/[debug]
+80541Fcc 00000004 80541Fcc 0 temp11/[debug]
+
+
+
 80548400 00000020 80548400 0 data/sphere.bin/[debug] 
 80548420 000002D0 80548420 0 cylinder/sphere.bin/[debug]
 805486F0 00000460 805486F0 0 hemisphere/sphere.bin/[debug]
