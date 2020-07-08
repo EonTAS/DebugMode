@@ -169,7 +169,7 @@ Draw Capsule [Eon, Masahiro Sakurai, Unpaid intern 3]
 	%callFunc(0x8003db58)
 }
 
-HOOK @ $801F4980
+HOOK @ $80541fa0
 {
 #doubles 
 .alias Radius 				= 31
@@ -200,22 +200,24 @@ HOOK @ $801F4980
 .alias End2MatrixOffset 	= 0x80
 .alias CylinderMatrixOffset = 0xE0
 
-#dataBlock offsets 
+#dataBlock offsets #$80548400
+
 .alias zero 				= 0x0 		#0x00000000 = 0
 .alias nearZeroPositive 	= 0x4 		#0x3727C5ac = 1.0E-5
 .alias nearZeroNegative 	= 0x8 		#0xB727C5AC = -1.0E-5
 .alias minusOne 			= 0xC 		#0xBF800000 = -1
 .alias half 				= 0x10 		#0x3FE00000 = 0.5
+#$80548420
 .alias CylinderPosAttr		= 0x20 		#originally in melee at 803B9DA0 (size 0x120)
 .alias CylinderNrmAttr		= 0x160 	#originally in melee at 803b9ec0
 .alias CylinderPosList		= 0x260
 .alias CylinderPosListSize	= 0xA0
+#$805486F0
 .alias HemiSpherePosAttr	= 0x2F0 	#originally in melee at 0x803b9940
 .alias HemiSphereNrmAttr	= 0x490 	#originally in melee at 803B9AE0
 .alias HemiSpherePosList	= 0x630 	#originally in melee at 0x803b9c80
 .alias HemiSpherePosListSize= 0x120
 
-.alias dataBlockLoc = 0x80656000
   	
 .macro DrawPart(<dataOffsetPosAttr>, <dataOffsetNrmAttr>, <dataOffsetPos>, <posListSize>, <matrixOffset>, <VTXAttrFmtThing>)
 {
@@ -680,9 +682,7 @@ HOOK @ $800B08A0
 	stb r0, -1(r5)
 
 
-	addi r3, r1, 0x10			# Where the info block will reside, it writes the filename to this, so filename size matters. 
-								#Allocated 0x70 bytes to it, 0x24 bytes header, so filename has 0x5C bytes max
-	
+	addi r3, r1, 0x10	
 	bl data
 	mflr r4
 	addi r4, r4, 0x10 			#has to be adjusted appropriately if size of HOOK is odd or even
@@ -738,8 +738,8 @@ HOOK @ $8070d2a8
 	mr r7, r31
 	mr r8, r29
 
-	lis r12, 0x801F
-	ori r12, r12, 0x4980
+	lis r12, 0x8054
+	ori r12, r12, 0x1fa0
 	mtctr r12
 	bctrl
 	
@@ -787,8 +787,9 @@ HOOK @ $8070de4c
 	mr r7, r31
 	mr r8, r29
 
-	lis r12, 0x801F
-	ori r12, r12, 0x4980
+	#$80541FA0
+	lis r12, 0x8054
+	ori r12, r12, 0x1fa0
 	mtctr r12
 	bctrl
 	
