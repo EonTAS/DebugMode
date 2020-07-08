@@ -663,39 +663,30 @@ DrawSphereEnds:
 }
 
 DebugFileLoader [Eon]
-	.PO<-FileLoader
-	.BA<-FileName
-	54010000 00000000 #Write BA to PO, aka write address of Filename to the FileLoader chunk
-    .GOTO->LoadFile
-FileName:
-    string "/../Source/Extras/DebugMode/sphere.bin"
-FileLoader:
-	word 0; #File Path Address, loaded by gecko above
-	word 0;
-	word 0;
-	word 0x80548400; #Address Where the file is loaded to
-	word 0;
-LoadFile:
-
 HOOK @ $800B08A0
 {
-	mflr r0 			#backup link register
-	bl 0x4 				#\get Address of current execution
-	mflr r3 			#/
-	mtlr r0 			#return original link register
-	subi r3, r3, 0x28 	#r3 = FileLoader
+	stwu r1, -0xB4(r1)
+	mflr r0
+	stw r0, 0xB8(r1)
+	
 
-/*
-	#File read param block init 
+	lis r5, 0x8054
+	ori r5, r5, 0x8400
+	lbz r0, -1(r5)
+	cmpwi r0, 1
+	beq end
 
-	addi r3, r1, 0x30			# Where the info block will reside
-
-	lis r4, 0x8055				# \ Pointer to "BOOST.GCT"
-	lwz r4, 0(r6)				# /
+	li r0, 1
+	stb r0, -1(r5)
 
 
-	lis r5, 0x8055				# \
-	ori r5, r5, 0x10			# / Location to upload
+	addi r3, r1, 0x10			# Where the info block will reside, it writes the filename to this, so filename size matters. 
+								#Allocated 0x70 bytes to it, 0x24 bytes header, so filename has 0x5C bytes max
+	
+	bl data
+	mflr r4
+	addi r4, r4, 0x10 			#has to be adjusted appropriately if size of HOOK is odd or even
+
 	li r6, 0x0
 	li r7, 0x0
 	lis r12, 0x8002				# \
@@ -703,21 +694,23 @@ HOOK @ $800B08A0
 	mtctr r12					# |
 	bctrl 						# /
 
+	addi r3, r1, 0x10
 
-*/
-
-
-	lwz r4, 0xC(r3) 	#address where file is to be loaded
-	lbz r0, -1(r4) 	#beginning of file loaded 
-	cmpwi r0, 1 		#if beginning has data, exit 
-	beqlr
-	li r0, 1
-	stb r0, -1(r4)
 	lis r12, 0x8001    	#readFile
 	ori r12, r12, 0xBF0C
 	mtctr r12          
-	bctr
+	bctrl
+end:
+	lwz r0, 0xB8(r1)
+	mtlr r0
+	addi r1, r1, 0xB4
+	blr
+data:
+	blrl
 }
+	.GOTO->skip
+    string "/../Source/Extras/DebugMode/sphere.bin"
+skip:
 Capsule 
 HOOK @ $8070d2a8
 {
