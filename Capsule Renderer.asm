@@ -735,14 +735,16 @@ HOOK @ $8070d2a8
 	mr r30, r5 #Colour1
 	mr r31, r6 #Colour2
 
+	#DisplayBubble(Double Radius, Float[3][4] ScaleMatrix, Float[3] Pos1, Float[3] Pos2, Byte[4] Colour1, Byte[4] Colour2, Float[3][4] ViewingMatrix)
+	lfs f1, 0xC(r28) #radius
+	
 	addi r3, r28, 0x40 	#ScaleMatrix
 	addi r4, r28, 0 	#Pos1
 	addi r5, r28, 0x34 	#Pos2
 	mr r6, r30
 	mr r7, r31
 	mr r8, r29
-	lfs f1, 0xC(r28) #radius
-	#DisplayBubble(Double Radius, Float[3][4] ScaleMatrix, Float[3] Pos1, Float[3] Pos2, Byte[4] Colour1, Byte[4] Colour2, Float[3][4] ViewingMatrix)
+
 	lis r12, 0x801F
 	ori r12, r12, 0x4980
 	mtctr r12
@@ -775,28 +777,23 @@ HOOK @ $8070de4c
 	mr r30, r5 #Colour1
 	mr r31, r6 #Colour2
 
-
-
-	#Pos1 = 0x0(r3)
-	#Pos2 = 0x34(r3)
-	#Colour1 = r5
-	#Colour2 = r6
-	#ScaleMatrix = Identity, Capsules this is 0x40
+	#PSMTXIdentity(Matrix* input)
 	addi r3, r1, 0x10
-	#PSMTXIdentity()
 	lis r12, 0x801e
 	ori r12, r12, 0xc158
 	mtctr r12
 	bctrl 
 
-	#addi r3, r28, 0x40 	#ScaleMatrix
+	#DisplayBubble(Double Radius, Float[3][4] ScaleMatrix, Float[3] Pos1, Float[3] Pos2, Byte[4] Colour1, Byte[4] Colour2, Float[3][4] ViewingMatrix)
+	lfs f1, 0xC(r28) 	#radius
+
+	addi r3, r1, 0x10 	#ScaleMatrix
 	addi r4, r28, 0 	#Pos1
 	addi r5, r28, 0x34 	#Pos2
 	mr r6, r30
 	mr r7, r31
 	mr r8, r29
-	lfs f1, 0xC(r28) #radius
-	#DisplayBubble(Double Radius, Float[3][4] ScaleMatrix, Float[3] Pos1, Float[3] Pos2, Byte[4] Colour1, Byte[4] Colour2, Float[3][4] ViewingMatrix)
+
 	lis r12, 0x801F
 	ori r12, r12, 0x4980
 	mtctr r12
@@ -809,6 +806,3 @@ HOOK @ $8070de4c
 	addi r1, r1, 0x50
 	blr
 }
-#X,Y,Z 
-
-#21,58,0.5
