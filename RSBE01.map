@@ -4,7 +4,7 @@
 80541fa0 00000004 80541FA0 0 drawBubble/[debug] (Double Radius, Float[3][4] ScaleMatrix, Float[3] Pos1, Float[3] Pos2, Byte[4] Colour1, Byte[4] Colour2, Float[3][4] ViewingMatrix)
 
 80541Fa4 00000004 80541fa4 0 debugDisplay/[soCollisionAttackPart]/[debug]
-80541Fa8 00000004 80541fa8 0 renderDebug/[soCollisionhitGroup]/[debug]
+80541Fa8 00000004 80541fa8 0 renderDebug/[soCollisionHitGroup]/[debug]
 80541FaC 00000004 80541fac 0 renderDebugInner/[soCollisionHitGroupInner]/[debug]
 80541Fb0 00000004 80541Fb0 0 debugDisplay/[soCollisionHitPart]/[debug]
 80541Fb4 00000004 80541Fb4 0 temp5/[debug]
