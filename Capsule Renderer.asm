@@ -711,6 +711,7 @@ data:
 	.GOTO->skip
     string "/../Source/Extras/DebugMode/debug.bin"
 skip:
+	.RESET
 Capsule 
 HOOK @ $8070d2a8
 {
