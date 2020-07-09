@@ -1,3 +1,19 @@
+Set Cull Mode within default colour drawer [Eon]
+HOOK @ $8001a79C
+{
+	li r3, 0
+	lis r12, 0x801f
+	ori r12, r12, 0x136c
+	mtctr r12
+	bctrl
+	li r3, 1
+	lis r12, 0x801F
+	ori r12, r12, 0x47A8
+	mtctr r12
+	bctrl
+	lwz r0, 0x24(r1)
+}
+
 Custom RenderDebug Call
 .alias ProcessPosition = 0
 HOOK @ $8002DD24
@@ -86,3 +102,113 @@ original:
 #{
 #    word debuginput
 #}
+
+
+drawQuadOutline [Eon]
+.macro callfunc(<addr>) 
+{
+.alias temp_Hi = <addr> / 0x10000
+.alias temp_Lo = <addr> & 0xFFFF
+  lis r12, temp_Hi
+  ori r12, r12, temp_Lo
+  mtctr r12
+  bctrl	
+}
+HOOK @ $80541FB4 
+{
+    stwu r1, -0x50(r1)
+    mflr r0
+    stw r0, 0x54(r1)
+    stfd f31, 0x20(r1)
+    stfd f30, 0x28(r1)
+	word 0xf3e10030; //    psq_st p31, 0x30(r1), 0, qr0
+	word 0xf3c10040; //    psq_st p30, 0x40(r1), 0, qr0
+    fmr f30, f1
+	fmr f31, f2
+    stw r31, 0x1C(r1)
+    mr r31, r4
+    stw r30, 0x18(r1)
+    mr r30, r5
+    stw r29, 0x14(r1)
+    mr r29, r3
+    %callfunc(0x80019FA4)
+    %callfunc(0x80018DE4)
+    lwz r31, 0(r31)
+    %callfunc(0x8001A5C0)
+    cmpwi r30, 0
+    beq zmode0
+zmode1:
+    li r3, 1
+    li r4, 3
+    li r5, 1
+    %callfunc(0x801F4774)
+    b zmodeset
+zmode0:
+    li r3, 0
+    li r4, 3
+    li r5, 1
+    %callfunc(0x801F4774)
+zmodeset:
+    li r3, 7
+    li r4, 0
+    li r5, 1
+    li r6, 7
+    li r7, 0
+    %callfunc(0x801F3FD8)
+	#convert line width as double into line width as integer
+	lfs f0, -0x7B68(r2)
+	fmuls f0, f0, f30
+	fctiwz f0, f0
+	stfd f0, 0x8(r1)
+	lwz r3, 0xC(r1)
+	rlwinm r3, r3, 0, 24, 31
+	
+	li r4, 2
+	%callfunc(0x801f12ac)
+
+	 
+
+    li r3, 0xB0 #line strip
+    li r4, 1
+    li r5, 5 #4 vertices
+    %callfunc(0x801F1088)
+    lis r3, 0xCC01 #gfx mem-loc
+
+.macro drawVertex(<offset>) 
+{
+	lfs f0, <offset>(r29)
+	lfs f1, <offset>+0x4(r29)
+	
+    stfs f0, -0x8000(r3) #x
+    stfs f1, -0x8000(r3) #y
+	stfs f31, -0x8000(r3)  #z
+
+    stw r31, -0x8000(r3) #colour
+}
+	
+	#v0
+	%drawVertex(0x00)
+	#v1
+	%drawVertex(0x8)
+	#v2
+	%drawVertex(0x10)
+	#v3
+	%drawVertex(0x18)
+	#v0
+	%drawVertex(0x00)
+
+	#draws lines attaching each point
+
+    lfd f31, 0x20(r1)
+    lfd f30, 0x28(r1)
+	word 0xe3e10030; //    psq_l p31, 0x30(r1), 0, qr0
+	word 0xe3c10040; //    psq_l p30, 0x40(r1), 0, qr0
+
+    lwz r0, 0x54(r1)
+    lwz r31, 0x1C(r1)
+    lwz r30, 0x18(r1)
+    lwz r29, 0x14(r1)
+    mtlr r0
+    addi r1, r1, 0x50
+    blr 
+}
