@@ -6,11 +6,6 @@ HOOK @ $8001a79C
 	ori r12, r12, 0x136c
 	mtctr r12
 	bctrl
-	li r3, 1
-	lis r12, 0x801F
-	ori r12, r12, 0x47A8
-	mtctr r12
-	bctrl
 	lwz r0, 0x24(r1)
 }
 
@@ -131,30 +126,13 @@ HOOK @ $80541FB4
     mr r30, r5
     stw r29, 0x14(r1)
     mr r29, r3
+
+
     %callfunc(0x80019FA4)
     %callfunc(0x80018DE4)
     lwz r31, 0(r31)
     %callfunc(0x8001A5C0)
-    cmpwi r30, 0
-    beq zmode0
-zmode1:
-    li r3, 1
-    li r4, 3
-    li r5, 1
-    %callfunc(0x801F4774)
-    b zmodeset
-zmode0:
-    li r3, 0
-    li r4, 3
-    li r5, 1
-    %callfunc(0x801F4774)
-zmodeset:
-    li r3, 7
-    li r4, 0
-    li r5, 1
-    li r6, 7
-    li r7, 0
-    %callfunc(0x801F3FD8)
+
 	#convert line width as double into line width as integer
 	lfs f0, -0x7B68(r2)
 	fmuls f0, f0, f30

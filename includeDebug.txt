@@ -33,6 +33,20 @@ Remake frame advance in a friendly way, temp method done, needs to be changed to
 	l-r-dpaddown 	= enable all toggles
 	x + dpad up 	= pause
 	r + dpad right 	= 1x = hurtbox visualisation on, 2x = hurtbox + bodys on
+things that i have plans to complete for sure :
+draw topN location when ecb draw is on (super simple)
+move camera-zone, blastzone, and the area manager draws to my custom rectangle drawer function (fairly simple)
+allow re-enabling stage renderer, coz rn when i turn off the stage i have no way to turn it back on (this is honestly by far the hardest coz i got no idea what to do about it)
+create better button mapping for things so that everything is useable (easy for the most part except the area manager coz its got 32 different valid states to be in atm)
+integrate with code menu (mostly just chat with fracture for a bit probably)
+fix point drawer for stuff to be a cross instead of a circle (not hard just effort)
+tidy up files and comment everything (hopefully not bad)
+
+potential steps i probably plan to do if im in the mood :
+add writing each ports current action, frame number, subaction etc to the top of the screen like melee (hard but i can see a way forward with it)
+add drawing item spawn locations in stage renderer (not too bad just gotta find correct part)
+add subspace emissary trigger areas to renderer, so that speedrunners etc can see what they are dealing with in testing (just gotta find where that stuff is defined, so not too hard)
+launch angle draw on hitboxes (planned out what i need for that yesterday, might do that today if im bored)
 	 
 
 fix subspace enemies - waiting for brawlcrate bugfix
