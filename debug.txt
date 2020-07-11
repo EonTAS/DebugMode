@@ -105,7 +105,7 @@ CylinderNrmAttr     0x160   = originally in melee at 803b9ec0
 0000 0000 0000 
 0000 0000 0000 
 0000 0000
-CylinderPosList     0x260
+CylinderPosList     0x260 #originally in melee at 803b9f20
 9800 452C 0F2D 
 0E2F 0F2D 0E2E 
 0E24 0B25 0B14 
@@ -130,7 +130,11 @@ CylinderPosList     0x260
 0A21 0A1F 0920 
 090E 020B 021B 
 081D 0800 0000
-HemiSpherePosAttr   0x2F0   = originally in melee at 0x803b9940
+0000 0000 0000 
+0000 0000 0000 
+0000 0000
+
+HemiSpherePosAttr   0x300   = originally in melee at 0x803b9940
 29CF 2D41 1151 
 2000 2D41 1FFF 
 29CF E783 29CF 
@@ -201,7 +205,8 @@ HemiSpherePosAttr   0x2F0   = originally in melee at 0x803b9940
 0000 0000 0000 
 0000 0000 0000
 0000
-HemiSphereNrmAttr   0x490   = originally in melee at 803B9AE0
+
+HemiSphereNrmAttr   0x4A0   = originally in melee at 803B9AE0
 29C7 2D49 114E 
 1FF9 2D49 1FF9 
 29CD E77B 29CD 
@@ -272,7 +277,8 @@ HemiSphereNrmAttr   0x490   = originally in melee at 803B9AE0
 0000 0000 0000 
 0000 0000 0000 
 0000 
-HemiSpherePosList   0x630 	    #originally in melee at 0x803b9c80
+
+HemiSpherePosList   0x640 	    #originally in melee at 0x803b9c80
 98 00 75 
 0B 0B 04 
 04 0C 0C 

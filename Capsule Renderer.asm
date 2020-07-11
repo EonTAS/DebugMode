@@ -213,9 +213,9 @@ HOOK @ $80541fa0
 .alias CylinderPosList		= 0x260
 .alias CylinderPosListSize	= 0xA0
 #$805486F0
-.alias HemiSpherePosAttr	= 0x2F0 	#originally in melee at 0x803b9940
-.alias HemiSphereNrmAttr	= 0x490 	#originally in melee at 803B9AE0
-.alias HemiSpherePosList	= 0x630 	#originally in melee at 0x803b9c80
+.alias HemiSpherePosAttr	= 0x300 	#originally in melee at 0x803b9940
+.alias HemiSphereNrmAttr	= 0x4A0 	#originally in melee at 803B9AE0
+.alias HemiSpherePosList	= 0x640 	#originally in melee at 0x803b9c80
 .alias HemiSpherePosListSize= 0x120
 
   	
