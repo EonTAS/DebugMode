@@ -118,7 +118,10 @@ Draw Capsule [Eon, Masahiro Sakurai, Unpaid intern 3]
 {
 	%callFunc(0x801F3C70)
 }
-
+.macro GXSetTevKAlphaSel()
+{
+	%callFunc(0x801f3ed0) 
+} 
 #PSMTX Functions
 .macro PSMTXInverse()
 {
@@ -366,6 +369,9 @@ SetGXSettings:
 	%GXSetTevAlphaIn()
 	li r3, 0
 	li r4, 0
+	%GXSetTevKAlphaSel()
+	li r3, 0
+	li r4, 0
 	li r5, 0
 	li r6, 0
 	li r7, 1
@@ -407,24 +413,6 @@ SetGXSettings:
 	li r3, 2
   	%GXSetCullMode()
 
-#	All this commented out was in original wii test that fixed it, stripped to just GXSetTevKAlphaSel as i think thats what really fixed it.
-#	li r3, 0
-#	%callFunc(0x801F3AFC) #GXSetTevDirect
-#
-#	
-#	li r3, 0
-#	li r4, 0
-#	li r5, 0
-#	%callFunc(0x801F3F20) #GXSetTevSwapMode
-#	li r3, 0
-#	li r4, 0
-#	li r5, 1
-#	li r6, 2
-#	li r7, 3
-#	%callFunc(0x801F3F5C) #GXSetTevSwapModeTable
-	li r3, 0
-	li r4, 0
-	%callFunc(0x801f3ed0) #GXSetTevKAlphaSel
 
 startShapeConstruction:
   	#scaleMatrix subtracts position and removes scale stuff to be reapplied later
