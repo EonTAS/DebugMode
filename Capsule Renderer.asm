@@ -246,7 +246,7 @@ HOOK @ $80541fa0
   	li r4, 10
   	li r5, 0
   	li r6, 3
-  	li r7, 0xE
+  	li r7, <VTXAttrFmtThing>
   	%GXSetVtxAttrFmt();
   	mr r3, ViewingMatrix
   	addi r4, r1, <matrixOffset>
@@ -360,8 +360,8 @@ SetGXSettings:
 	%GXSetTevColorIn();
 	li r3, 0
 	li r4, 7
-	li r5, 1
-	li r6, 4
+	li r5, 6
+	li r6, 1
 	li r7, 7
 	%GXSetTevAlphaIn()
 	li r3, 0
@@ -382,7 +382,6 @@ SetGXSettings:
 	%GXSetNumChans();
 	li r3, 4
 	mr r4, Colour2
-	#lwz r4, 0x0(Colour2)
 	%GXSetChanAmbColor();
 	li r3, 4
 	li r0, -1
@@ -407,6 +406,26 @@ SetGXSettings:
 
 	li r3, 2
   	%GXSetCullMode()
+
+#	All this commented out was in original wii test that fixed it, stripped to just GXSetTevKAlphaSel as i think thats what really fixed it.
+#	li r3, 0
+#	%callFunc(0x801F3AFC) #GXSetTevDirect
+#
+#	
+#	li r3, 0
+#	li r4, 0
+#	li r5, 0
+#	%callFunc(0x801F3F20) #GXSetTevSwapMode
+#	li r3, 0
+#	li r4, 0
+#	li r5, 1
+#	li r6, 2
+#	li r7, 3
+#	%callFunc(0x801F3F5C) #GXSetTevSwapModeTable
+	li r3, 0
+	li r4, 0
+	%callFunc(0x801f3ed0) #GXSetTevKAlphaSel
+
 startShapeConstruction:
   	#scaleMatrix subtracts position and removes scale stuff to be reapplied later
   	mr r3, ScaleMatrix
