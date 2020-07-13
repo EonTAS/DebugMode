@@ -671,54 +671,7 @@ DrawSphereEnds:
 	blr
 }
 
-DebugFileLoader [Eon]
-HOOK @ $800B08A0
-{
-	stwu r1, -0xB4(r1)
-	mflr r0
-	stw r0, 0xB8(r1)
-	
 
-	lis r5, 0x8054
-	ori r5, r5, 0x8400
-	lbz r0, -1(r5)
-	cmpwi r0, 1
-	beq end
-
-	li r0, 1
-	stb r0, -1(r5)
-
-
-	addi r3, r1, 0x10	
-	bl data
-	mflr r4
-	addi r4, r4, 0x10 			#has to be adjusted appropriately if size of HOOK is odd or even
-
-	li r6, 0x0
-	li r7, 0x0
-	lis r12, 0x8002				# \
-	ori r12, r12, 0x239C		# | Set up the read parameter block
-	mtctr r12					# |
-	bctrl 						# /
-
-	addi r3, r1, 0x10
-
-	lis r12, 0x8001    	#readFile
-	ori r12, r12, 0xBF0C
-	mtctr r12          
-	bctrl
-end:
-	lwz r0, 0xB8(r1)
-	mtlr r0
-	addi r1, r1, 0xB4
-	blr
-data:
-	blrl
-}
-	.GOTO->skip
-    string "/../Source/Extras/DebugMode/debug.bin"
-skip:
-	.RESET
 Capsule 
 HOOK @ $8070d2a8
 {
