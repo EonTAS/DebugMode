@@ -31,6 +31,8 @@ Bubble Colours
 .alias HemiSpherePosList	= 0x740 	#originally in melee at 0x803b9c80
 .alias HemiSpherePosListSize= 0x120
 
+.alias actionOffsetList = 0x900
+.alias actionStrings = 0xD60 #-> 0x1640
 
 CylinderPosAttr     0x100    = originally in melee at 803B9DA0 (size 0x120)
 E000 0000 3FFF 
@@ -399,3 +401,326 @@ HemiSpherePosList   0x720 	    #originally in melee at 0x803b9c80
 00 00 00 
 00 00 00 
 E0 00 00 00
+
+
+ACTION NAMES LIST 
+
+Offset List = 0x900
+Data List = 0xD60 -> 0x1640
+
+// these are what you'd modify
+const startOffset = 0x00000D60;
+// put an action name on each line
+const actions = `
+Wait
+Walk
+WalkBrake
+Dash
+Run
+RunBrake
+Turn1
+Turn2
+TurnRun
+TurnRunBrake
+JumpSquat
+Jump
+JumpAerial
+Multijump
+Fall
+FallAerial
+FallSpecial
+Squat
+SquatWait
+SquatF
+SquatB
+SquatRv
+LandingHeavy
+LandingLight
+LandingLagAerialAttack
+LandingFallSpecial
+GuardOn
+Guard
+GuardOff
+GuardDamage
+EscapeN
+EscapeF
+EscapeB
+EscapeAir
+Rebound
+Rebound2
+Jab
+RapidJab
+AttackDash
+AttackS3
+AttackHi3
+AttackLw3
+AttackS4Start
+AttackS4Hold
+AttackS4S
+AttackLw4Start
+AttackLw4Hold
+AttackLw4
+AttackHi4Start
+AttackHi4Hold
+AttackHi4
+AerialAttack
+Catch
+CatchPull
+CatchDash
+CatchWait1f
+CatchTurn
+CatchWait
+CatchAttack
+CatchCut
+Throw
+CaptureWait
+CaptureWaitHi
+CaptureDamage
+CaptureCut
+CaptureJump
+Thrown
+GroundHit
+AirHitLand
+Hitstun
+HitGround
+HitWall
+HitCeiling
+DamageFall
+HitGroundTumble
+HitWallTumble
+HitCeilingTumble
+DownWait
+
+DownEat
+DownFoward
+DownStand
+DownForward
+DownAttack
+DownBound
+DownDamage
+ShieldBreak
+ShieldBreakBound
+ShieldBreakBound
+FuraFuraStart
+FuraFura
+FuraFuraEnd
+FuraSleepStart
+FuraSleepLoop
+FuraSleepEnd
+DekuNutStun
+Passive
+PassiveStand
+PassiveWall
+PassiveWallJump
+PassiveCeil
+RunIntoWall
+HitHeadOnWall
+Walljump
+WallclingStart
+WallclingWait
+WallclingEnd
+WallclingEnd
+WallclingJump
+Footstool
+GetFootstooled
+FootstoolStand
+GetFootstooledAirStart
+GetFootstooled2
+Pass
+CliffCatchStart
+CliffCatch
+CliffWait
+CliffAttack
+CliffClimb
+CliffEscape
+CliffJumpStart
+CliffJumpEnd
+
+Ottotto
+OttottoWait
+EdgeSlip
+FireTether
+TetherAiming
+TetherGrabbingStage
+TetherRise
+
+GlideStart
+GlideDirection
+GlideLanding
+GlideAttack
+GlideEnd
+Slip
+SlipDown
+SlipTurn
+SlipDash
+SlipWait
+SlipStand
+SlipAttack
+SlipEscapeF
+SlipEscapeB
+LadderClimb
+
+LadderWait
+
+GrabItem
+GrabHeavyItem
+
+
+
+ThrowItem
+ThrowItemRun
+ThrowHeavyItem
+NeutralSwingItem
+TiltSwingItem
+SmashSwingItemWindup
+SmashSwingItem
+SmashSwingItemCharge
+DashSwingItem
+
+
+
+
+
+
+
+
+
+
+
+ItemScrew
+ItemScrew
+ItemScrewFall
+ItemAssist
+SwimFall
+SwimRise
+SwimDamage
+Swim
+SwimF
+SwimEnd
+SwimTurn
+SwimJumpSquat
+SwimDrown
+SwimDrownOut
+Death
+Respawn
+
+
+
+
+
+SpringJump
+
+EatenByFishOnSummit
+
+
+
+
+
+CaptureChomp
+
+
+CaptureFalconDive
+BeingInhaled
+CaptureInhale
+
+
+
+
+CaptureMonkeyFlip
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+DarkDiveGrabbed
+FlameChokeGroundGrabbed
+FlameChokeAirGrabbed
+FlameChokeAirPlummetingGrabbed
+FlameChokeScramble
+EggImminent
+CaptureEgg
+
+CaptureFlyingSlam
+
+
+
+
+
+
+
+
+
+
+
+CaptureMasterHand
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Unloaded
+Appeal
+AppealSmash
+Entrance
+Victory
+Loss
+
+SpecialN
+SpecialS
+SpecialHi
+SpecialLw
+Final
+`.split('\n');
+
+// gets rid of first and last empty lines
+actions.pop()
+actions.shift()
+
+let totalOffset = 0;
+let outMap = {};
+let outByteString = '';
+let outOffsetString = '';
+
+for (const action of actions) {
+  //outMap[action] = '0x' + (startOffset + totalOffset).toString(16).padStart(8, '0');
+  if(action.length > 1) {
+    for (const char of action) {
+      outByteString += char.charCodeAt(0).toString(16).padStart(2, '0');
+    }
+    outOffsetString += (startOffset + totalOffset).toString(16).padStart(8, '0')
+    outOffsetString += '\n'
+    totalOffset += action.length + 1;
+    outByteString += '00';
+    outByteString += '\n';
+  } 
+  else
+  {
+    outOffsetString += '00000000'
+    outOffsetString += '\n'
+  }
+}
+//console.log(JSON.stringify(outMap, null, 2));
+console.log("as hex bytes:");
+console.log(outOffsetString)
+console.log(outByteString);

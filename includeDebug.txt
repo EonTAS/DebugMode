@@ -8,6 +8,7 @@
 .include "source/Extras/DebugMode/Stage Object.asm"
 .include "source/Extras/DebugMode/Stage(unfinished).asm"
 .include "source/Extras/DebugMode/Toggles.asm"
+.include "source/Extras/DebugMode/StatusModule.asm"
 /*
 Debug Custom Things
 
