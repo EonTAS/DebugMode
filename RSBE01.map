@@ -1,4 +1,8 @@
 .text
+
+80541f90 00000004 80541F90 0 drawCollisionList/[grCollisionManager]/[debug]
+80541f94 00000004 80541F94 0 DrawCollision/[grCollision]/[debug] (SegmentData, CollisionData)
+
 80541F98 00000004 80541F98 0 toggleDebugFlag/[debug]
 80541F9C 00000004 80541F9C 0 readDebugFlag/[debug]
 80541fa0 00000004 80541FA0 0 drawBubble/[debug] (Double Radius, Float[3][4] ScaleMatrix, Float[3] Pos1, Float[3] Pos2, Byte[4] Colour1, Byte[4] Colour2, Float[3][4] ViewingMatrix)
