@@ -1,4 +1,7 @@
 renderDebug/[grCollisionManager]
+
+#80059e60 melee stage draw
+
 HOOK @ $80112c94
 {
 	stwu r1, -0x0020 (r1)
@@ -25,13 +28,14 @@ HOOK @ $80112c94
 	lis r29, 0x804A
 	subi	r29, r29, 6788
 	lwz	r31, 0x0004 (r29)
-	addi	r29, 29, 4
+	addi	r29, r29, 4
 	b checkLoop
 loopStart:
-	lbz	r0, -0x4(r31)
-	rlwinm.	r0, r0, 28, 31, 31
+	lbz	r3, -0x4(r31)
+	rlwinm.	r0, r3, 25, 31, 31
 	beq next
-
+	rlwinm. r0, r3, 31, 31, 31
+	bne next
 
 	subi	r28, r31, 48
 	mr	r3, r28
@@ -85,6 +89,9 @@ loopInit:
 loop:
 	lwz	r0, 0x0018 (input)
 	add	r31, r0, r30
+	lbz r0, 0x54(r31)
+	rlwinm. r0, r0, 26, 31, 31
+	beq loopIterate
 	li r25, 0
 	lhz r26, 0x2(r31)
 	b innerLoopCheck
