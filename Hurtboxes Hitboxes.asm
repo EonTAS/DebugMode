@@ -8,6 +8,34 @@ renderDebug/[soCollisionAttackModuleImpl]
   mtctr r12
   bctrl	
 }
+.macro loadFileLoc(<reg>) 
+{
+	lis <reg>, 0x8054
+	ori <reg>, <reg>, 0x8400 
+}
+
+.macro storeColourSet(<primary>, <secondary>, <fileReg>, <offset>)
+{
+	%storeColour(<primary>+0, <secondary>+0, <fileReg>, <offset>+0)
+	%storeColour(<primary>+1, <secondary>+1, <fileReg>, <offset>+1)
+	%storeColour(<primary>+2, <secondary>+2, <fileReg>, <offset>+2)
+	%storeAlpha(<primary>+3, <secondary>+3, <fileReg>, <offset>+3)
+}
+.macro storeColour(<primary>, <secondary>, <fileReg>, <offset>)
+{
+	lbz r0, <offset>(<fileReg>)
+	stb r0, <primary>(r1)
+	srwi r0, r0, 1
+	stb r0, <secondary>(r1)
+}
+.macro storeAlpha(<primary>, <secondary>, <fileReg>, <offset>)
+{
+	lbz r0, <offset>(<fileReg>)
+	stb r0, <primary>(r1)
+	stb r0, <secondary>(r1)	
+}
+.alias hitbox = 0x50
+
 HOOK @ $8074BDB0
 {
 	stwu r1, -0x50(r1)
@@ -114,16 +142,10 @@ debugDisplaySoCollisionAttackPart:
 	beq skip
 
 	mr r3, r5
-	addi r5, r1, 12
-	addi r6, r1, 8
-	lis r0, 0xFF00
-	ori r0, r0, 0x0080
-	stw r0, 0xC(r1)
-
-	lis r0, 0x4000
-	ori r0, r0, 0x0080
-	stw r0, 0x8(r1)
-
+	addi r5, r1, 0x8
+	addi r6, r1, 0xC
+	%loadFileLoc(7)
+	%storeColourSet(0x8, 0xC, 7, hitbox)
 	lwz r12, 0x30(r3)
 	lwz r12, 0x24(r12)
 	mtctr r12
@@ -298,6 +320,38 @@ renderDebug/[soCollisionHitModuleImpl]
   mtctr r12
   bctrl	
 }
+.macro loadFileLoc(<reg>) 
+{
+	lis <reg>, 0x8054
+	ori <reg>, <reg>, 0x8400 
+}
+
+.macro storeColourSet(<primary>, <secondary>, <fileReg>, <offset>)
+{
+	%storeColour(<primary>+0, <secondary>+0, <fileReg>, <offset>+0)
+	%storeColour(<primary>+1, <secondary>+1, <fileReg>, <offset>+1)
+	%storeColour(<primary>+2, <secondary>+2, <fileReg>, <offset>+2)
+	%storeAlpha(<primary>+3, <secondary>+3, <fileReg>, <offset>+3)
+}
+.macro storeColour(<primary>, <secondary>, <fileReg>, <offset>)
+{
+	lbz r0, <offset>(<fileReg>)
+	stb r0, <primary>(r1)
+	srwi r0, r0, 1
+	stb r0, <secondary>(r1)
+}
+.macro storeAlpha(<primary>, <secondary>, <fileReg>, <offset>)
+{
+	lbz r0, <offset>(<fileReg>)
+	stb r0, <primary>(r1)
+	stb r0, <secondary>(r1)	
+}
+.alias vulnerable 			= 0x40
+.alias grabInvulnerable     = 0x44
+.alias invincible 			= 0x48
+.alias intangible 			= 0x4C
+
+
 HOOK @ $80750F58
 {
 	stwu r1, -0x50(r1)
@@ -529,6 +583,7 @@ debugDisplaySoCollisionHitPart:
 	lwz r0, 0(r31)
 
 checkStates:
+	%loadFileLoc(4)
 	cmpwi r0, 0
 	beq normal
 	cmpwi r0, 1
@@ -541,30 +596,28 @@ checkStates:
 	beq intang 
 	b skip 
 normal:
-	lis r3, 0xFFFF
-	ori r3, r3, 0x0080
-	lis r4, 0x8080
-	ori r4, r4, 0x0080
+	lwz r3, 0x24(r31)
+	rlwinm r3, r3, 11, 30, 31 #and 0x00600000 and shift so 0x00200000 = 1
+	cmpwi r3, 1
+	beq ungrabbable
+	cmpwi r3, 2
+	beq ungrabbable
+grabbable:
+	%storeColourSet(0x8, 0xC, 4, vulnerable)
+	b drawHurtbox
+ungrabbable:
+	%storeColourSet(0x8, 0xC, 4, grabInvulnerable)
 	b drawHurtbox
 invince:
-	lis r3, 0x00FF
-	ori r3, r3, 0x0080
-	lis r4, 0x0080
-	ori r4, r4, 0x0080
+	%storeColourSet(0x8, 0xC, 4, invincible)
 	b drawHurtbox
 intang: 
-	lis r3, 0x0000
-	ori r3, r3, 0xFF80
-	lis r4, 0x0000
-	ori r4, r4, 0x8080
+
+	%storeColourSet(0x8, 0xC, 4, intangible)
 	b drawHurtbox
 drawHurtbox:
-
-	stw r3, 0xC(r1)
-	stw r4, 0x8(r1)
-
-	addi r5, r1, 12
-	addi r6, r1, 8
+	addi r5, r1, 0x8
+	addi r6, r1, 0xC
 	mr r3, r30
 	mr r4, r29
 	lwz r12, 0x30(r3)
@@ -582,4 +635,69 @@ skip:
 	mtlr r0
 	addi r1, r1, 0x40
 	blr 
+}
+Bubble Colour Modifiers
+.macro loadFileLoc(<reg>) 
+{
+	lis <reg>, 0x8054
+	ori <reg>, <reg>, 0x8400 
+}
+.macro storeColourSet(<primary>, <secondary>, <fileReg>, <offset>)
+{
+	%storeColour(<primary>+0, <secondary>+0, <fileReg>, <offset>+0)
+	%storeColour(<primary>+1, <secondary>+1, <fileReg>, <offset>+1)
+	%storeColour(<primary>+2, <secondary>+2, <fileReg>, <offset>+2)
+	%storeAlpha(<primary>+3, <secondary>+3, <fileReg>, <offset>+3)
+}
+.macro storeColour(<primary>, <secondary>, <fileReg>, <offset>)
+{
+	lbz r0, <offset>(<fileReg>)
+	stb r0, <primary>(r1)
+	srwi r0, r0, 1
+	stb r0, <secondary>(r1)
+}
+.macro storeAlpha(<primary>, <secondary>, <fileReg>, <offset>)
+{
+	lbz r0, <offset>(<fileReg>)
+	stb r0, <primary>(r1)
+	stb r0, <secondary>(r1)	
+}
+.alias grabbox 				= 0x54
+.alias shieldbox 			= 0x58
+.alias reflectorbox			= 0x5C
+.alias absorberbox 			= 0x60
+.alias searchbox			= 0x64
+
+#Shields etc
+HOOK @ $807513F4
+{	
+	%loadFileLoc(5)
+
+	#0x1C Shield Main / Reflector
+	#0x18 Shield Secondary
+	%storeColourSet(0x1C, 0x18, 5, shieldbox)
+
+	#0x14 Reflector Main
+	#0x10 Reflector Secondary
+	%storeColourSet(0x14, 0x10, 5, reflectorbox)
+
+	#0x0C Absorber Main
+	#0x08 Absorber Secondary
+	%storeColourSet(0x0C, 0x08, 5, absorberbox)
+}
+#Grab
+HOOK @ $80755B6C
+{
+	%loadFileLoc(7)
+	#0x08 #Grab Main
+	#0x0C #Grab Secondary
+	%storeColourSet(0xC, 0x8, 7, grabbox)
+}
+#Search
+HOOK @ $8075868C
+{
+	%loadFileLoc(7)
+	#0x08 #Search Main
+	#0x0C #Search Secondary
+	%storeColourSet(0xC, 0x8, 7, searchbox)
 }
