@@ -587,8 +587,8 @@ DashSwingItem
 
 
 
-ItemScrew
-ItemScrew
+ItemScrewJump
+ItemScrewAerialJump
 ItemScrewFall
 ItemAssist
 SwimFall
