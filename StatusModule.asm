@@ -21,6 +21,9 @@ unknown:
     addi r3, r31, 0
 }
 
+#80B31FA0 = stOperatorInfo # might use this to render char info, is pointer list of stOperatorInfo = can use it to access each active char proper.
+#try using loop found within setSlow (80817C48), iterates through every fighter in the match. maybe place this function call within stage module so it runs only once?
+#still need text output  
 renderDebug/soStatusModuleImpl
 HOOK @ $80541Fbc
 {
@@ -83,6 +86,10 @@ HOOK @ $80541Fbc
     lwz r12, 0x88(r12)
     mtctr r12
     bctrl
+
+    #isEnableTermGroup/[soTransitionModuleImpl]/so_transition_ will allow specific interupt checks, loop over every and output a bitmask?
+    #isEnableCancel/[ftCancelModuleImpl] will allow catching an allow interupt? 
+
 
 #sprintf/printf.o
     blr
