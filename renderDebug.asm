@@ -278,6 +278,7 @@ HOOK @ $80541fb8
 }
 
 DebugFileLoader [Eon]
+.alias heapType = 0x9 #idkResource
 HOOK @ $800B08A0
 {
 	stwu r1, -0xB4(r1)
@@ -313,6 +314,32 @@ HOOK @ $800B08A0
 	ori r12, r12, 0xBF0C
 	mtctr r12          
 	bctrl
+	#8000C8B8
+	li r3, 0x200
+	li r4, heapType
+	lis r12, 0x8000
+	ori r12, r12, 0xc8b8
+	mtctr r12
+	bctrl
+	#0x800696B4
+	lis r4, 0x8054
+	ori r4, r4, 0x8400
+	stw r3, 0xD5C(r4)
+	li r4, 10
+	li r5, heapType
+	lis r12, 0x8006
+	ori r12, r12, 0x96b4
+	mtctr r12
+	bctrl
+	#0x8006b400
+	li r4, 1024
+	li r5, 1
+	li r6, heapType
+	lis r12, 0x8006
+	ori r12, r12, 0xB400
+	mtctr r12
+	bctrl
+
 end:
 	lwz r0, 0xB8(r1)
 	mtlr r0
