@@ -31,6 +31,30 @@ Bubble Colours
 .alias HemiSpherePosList	= 0x740 	#originally in melee at 0x803b9c80
 .alias HemiSpherePosListSize= 0x120
 
+
+.alias MessageObject = 0x87C
+
+.alias WriterX0 = 0x880
+.alias WriterY0 = 0x884
+.alias WriterX1 = 0x888
+.alias WriterY1 = 0x88C
+
+.alias initYOffset = 0x890
+.alias yoffsetEach = 0x894
+.alias scaleX = 0x898
+.alias scaleY = 0x89C
+
+.alias portPos = 0x8A0
+.alias actionPos = 0x8A4
+.alias subactionPos = 0x8A8
+.alias framePos = 0x8AC
+
+.alias mainPortString = 0x8B0
+.alias nanaPortString = 0x8B4
+.alias actionString = 0x8B9
+.alias subactionString = 0x8CD
+.alias frameString = 0x8DB
+
 .alias actionOffsetList = 0x900
 .alias actionStrings = 0xD60 #-> 0x1640
 

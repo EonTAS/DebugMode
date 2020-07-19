@@ -13,11 +13,11 @@
 80541Fb0 00000004 80541Fb0 0 debugDisplay/[soCollisionHitPart]/[debug]
 80541Fb4 00000004 80541Fb4 0 drawQuadOutline/[debug] (Double linewidth, Double Z, Float[4][2] corners, Byte[4] colour, int zmode)
 80541Fb8 00000004 80541Fb8 0 drawLine3D/[debug] (Double linewidth, Float[3] pos1, Float[3] pos2, Byte[4] colour, int zmode)
-80541Fbc 00000004 80541Fbc 0 renderDebug/[soStatusModuleImpl]/[debug]
-80541Fc0 00000004 80541Fc0 0 temp8/[debug]
-80541Fc4 00000004 80541Fc4 0 temp9/[debug]
-80541Fc8 00000004 80541Fc8 0 temp10/[debug]
-80541Fcc 00000004 80541Fcc 0 temp11/[debug]
+80541Fbc 00000004 80541Fbc 0 getFighterData/[soStatusModuleImpl]/[debug]
+80541Fc0 00000004 80541Fc0 0 displayAllFighterData/[ftManager]/[debug] (ftManager ftM)
+80541Fc4 00000004 80541Fc4 0 displayFighter/[debug] (Entry char, int portNum, Bool nana, int lineNumber)
+80541Fc8 00000004 80541Fc8 0 printftoscreen/[debug]
+80541Fcc 00000004 80541Fcc 0 initialisePrinter/[debug]
 
 
 

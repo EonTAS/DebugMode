@@ -150,6 +150,15 @@ charLoop:
 	addi r30, r30, 1
 	cmpwi r30, 4
 	blt charLoop
+
+
+	#print char action data
+	lis r3, 0x80b8
+    lwz r3, 0x7C28(r3)
+	lis r12, 0x8054
+	ori r12, r12, 0x1FC0
+	mtctr r12
+	bctrl
 end:
 	lwz r0, 0x0044(r1)
 	lwz r31, 0x0040(r1)

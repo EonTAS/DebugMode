@@ -324,7 +324,7 @@ HOOK @ $800B08A0
 	#0x800696B4
 	lis r4, 0x8054
 	ori r4, r4, 0x8400
-	stw r3, 0xD5C(r4)
+	stw r3, 0x87C(r4)
 	li r4, 10
 	li r5, heapType
 	lis r12, 0x8006
@@ -332,7 +332,7 @@ HOOK @ $800B08A0
 	mtctr r12
 	bctrl
 	#0x8006b400
-	li r4, 1024
+	li r4, 0x400
 	li r5, 1
 	li r6, heapType
 	lis r12, 0x8006
