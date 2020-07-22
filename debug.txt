@@ -11,14 +11,19 @@ Bubble Colours
 .alias grabInvulnerable     = 0x44
 .alias invincible 			= 0x48
 .alias intangible 			= 0x4C
-.alias hitbox 				= 0x50
+
+
 
 #game renderers
-.alias grabbox 				= 0x54
-.alias shieldbox 			= 0x58
-.alias reflectorbox			= 0x5C
-.alias absorberbox 			= 0x60
-.alias searchbox			= 0x64
+.alias grabbox 				= 0x50
+.alias shieldbox 			= 0x54
+.alias reflectorbox			= 0x58
+.alias absorberbox 			= 0x5C
+.alias searchbox			= 0x60
+
+
+.alias hitboxList 				= 0x64
+.alias hitboxListLength   = 8
 
 #$80548420
 .alias CylinderPosAttr		= 0x100 	#originally in melee at 803B9DA0

@@ -14,27 +14,7 @@ renderDebug/[soCollisionAttackModuleImpl]
 	ori <reg>, <reg>, 0x8400 
 }
 
-.macro storeColourSet(<primary>, <secondary>, <fileReg>, <offset>)
-{
-	%storeColour(<primary>+0, <secondary>+0, <fileReg>, <offset>+0)
-	%storeColour(<primary>+1, <secondary>+1, <fileReg>, <offset>+1)
-	%storeColour(<primary>+2, <secondary>+2, <fileReg>, <offset>+2)
-	%storeAlpha(<primary>+3, <secondary>+3, <fileReg>, <offset>+3)
-}
-.macro storeColour(<primary>, <secondary>, <fileReg>, <offset>)
-{
-	lbz r0, <offset>(<fileReg>)
-	stb r0, <primary>(r1)
-	srwi r0, r0, 1
-	stb r0, <secondary>(r1)
-}
-.macro storeAlpha(<primary>, <secondary>, <fileReg>, <offset>)
-{
-	lbz r0, <offset>(<fileReg>)
-	stb r0, <primary>(r1)
-	stb r0, <secondary>(r1)	
-}
-.alias hitbox = 0x50
+
 
 HOOK @ $8074BDB0
 {
@@ -102,6 +82,7 @@ loop:
 	mr r5, r3
 	mr r3, r31
 	addi r4, r1, 8
+	mr r7, r30
 	%callFunc(0x80541fa4)
 	
 iterate:
@@ -126,6 +107,35 @@ end:
 	blr 
 }
 
+.alias hitboxList = 0x64
+.alias hitboxListLength = 8
+.macro storeColourSet(<primary>, <secondary>, <fileReg>)
+{
+	
+	%storeColour(<primary>+0, <secondary>+0, <fileReg>, 0)
+	%storeColour(<primary>+1, <secondary>+1, <fileReg>, 1)
+	%storeColour(<primary>+2, <secondary>+2, <fileReg>, 2)
+	%storeAlpha(<primary>+3, <secondary>+3,  <fileReg>, 3)
+}
+.macro storeColour(<primary>, <secondary>, <fileReg>, <offset>)
+{
+	lbz r0, <offset>(<fileReg>)
+	stb r0, <primary>(r1)
+	srwi r0, r0, 1
+	stb r0, <secondary>(r1)
+}
+.macro storeAlpha(<primary>, <secondary>, <fileReg>, <offset>)
+{
+	lbz r0, <offset>(<fileReg>)
+	stb r0, <primary>(r1)
+	stb r0, <secondary>(r1)	
+}
+
+#r3 = soCollisionAttack
+#r4 = camera obj
+#r5 = clCapsule/clSphere
+#r6 = hitbox data
+#r7 = hitbox ID
 HOOK @ $80541fa4
 {
 debugDisplaySoCollisionAttackPart:
@@ -141,11 +151,21 @@ debugDisplaySoCollisionAttackPart:
 	cmpwi r0, 1
 	beq skip
 
+
+	cmpwi r7, hitboxListLength
+	blt 0x8
+	li r7, hitboxListLength
+	mulli r3, r7, 4
+	addi r3, r3, hitboxList
+
+	%loadFileLoc(7)
+	add r7, r7, r3
+	%storeColourSet(0x8, 0xC, 7)
+
 	mr r3, r5
+	#r4 from input = camera matrix
 	addi r5, r1, 0x8
 	addi r6, r1, 0xC
-	%loadFileLoc(7)
-	%storeColourSet(0x8, 0xC, 7, hitbox)
 	lwz r12, 0x30(r3)
 	lwz r12, 0x24(r12)
 	mtctr r12
@@ -662,11 +682,11 @@ Bubble Colour Modifiers
 	stb r0, <primary>(r1)
 	stb r0, <secondary>(r1)	
 }
-.alias grabbox 				= 0x54
-.alias shieldbox 			= 0x58
-.alias reflectorbox			= 0x5C
-.alias absorberbox 			= 0x60
-.alias searchbox			= 0x64
+.alias grabbox 				= 0x50
+.alias shieldbox 			= 0x54
+.alias reflectorbox			= 0x58
+.alias absorberbox 			= 0x5C
+.alias searchbox			= 0x60
 
 #Shields etc
 HOOK @ $807513F4
