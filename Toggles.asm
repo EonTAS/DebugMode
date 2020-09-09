@@ -1,3 +1,6 @@
+Debug Loaded check 
+string "SAFE" @ $80541f8c
+
 ToggleDebugFlag
 HOOK @ $80541F98
 {
@@ -16,70 +19,101 @@ HOOK @ $80541F9C
 	blr
 }
 
-Toggles
-#Char Model Toggle
-HOOK @ $80765978
+renderDebug/[gfSceneRoot]
+.alias stageID = 0
+.alias fighterID = 1
+.alias itemsarticles = 2
+.alias unk1ID = 3
+.alias globalFX1ID = 4
+.alias globalFX2ID = 5
+.alias unk2ID = 6
+.alias unk3ID = 7
+.alias interfaceID = 8
+
+HOOK @ $8000E7AC
 {
+	stwu r1, -0x10 (r1)
+	mflr r0
+	stw r0, 0x14(r1)
+	stw r31, 0x0C(r1)
+	stw r30, 0x08(r1)
+	mr	r31, r3
+
+	lis r4, 0x8054
+	ori r4, r4, 0x1f8c
+	lwz r4, 0x0(r4)
+	cmpwi r4, 0
+	beq end
+
+	lis r30, 0x8000
+	ori r30, r30, 0xD234
+debugOn:
+	li r4, stageID
+	li r5, 1
+	mtctr r30
+	bctrl
+	mr r3, r31
+	li r4, fighterID
+	li r5, 1
+	mtctr r30
+	bctrl	
+	mr r3, r31
+	li r4, interfaceID
+	li r5, 1
+	mtctr r30
+	bctrl
+char:
 	li r3, 4
 	lis r12, 0x8054 
 	ori r12, r12, 0x1F9C
 	mtctr r12 
 	bctrl
 	cmpwi r3, 1
+	bne stage
 	mr r3, r31
-	bne %end%
-	li r3, 0
-}
-
-renderDebug/[Ground]
-HOOK @ $8096B334
-{
-	stwu	r1, -0x0010 (r1)
-	mflr	r0
-	stw	r0, 0x14(r1)
-	stw	r31, 0x0C(r1)
-	mr	r31, r3
+	li r4, fighterID
+	li r5, 0
+	mtctr r30
+	bctrl
+#disable stage render
+stage:
 	li r3, 8
 	lis r12, 0x8054 
 	ori r12, r12, 0x1F9C
 	mtctr r12 
 	bctrl
 	cmpwi r3, 2
+	bne interface
+	mr r3, r31
+	li r4, stageID
+	li r5, 0
+	mtctr r30
+	bctrl
+interface:
+	li r3, 5
+	lis r12, 0x8054 
+	ori r12, r12, 0x1F9C
+	mtctr r12 
+	bctrl
+	cmpwi r3, 1
 	bne end
 	mr r3, r31
-	li r4, 0
-	lis r12, 0x8096
-	ori r12, r12, 0xAC40
-	mtctr r12
+	li r4, interfaceID
+	li r5, 0
+	mtctr r30
 	bctrl
 end:
 	lwz	r0, 0x14(r1)
 	lwz	r31, 0x0C(r1)
+	lwz	r30, 0x08(r1)
 	mtlr r0
-	addi r1, r1, 16
+	addi r1, r1, 0x10
 	blr	
 
 }
 
 
 
-##Stage Render
-#HOOK @ $8096AC34
-#{
-#	li r3, 1
-#	lis r12, 0x8054 
-#	ori r12, r12, 0x1F9C
-#	mtctr r12 
-#	mctrl
-#	cmpwi r3, 0
-#	blreq
-#	mr r3, r31
-#	li r4, 0
-#	lis r12, 0x8096
-#	ori r12, r12, 0xAC40
-#	mtctr r12
-#	bctr
-#}
 
 !Code Menu Interface
 C0000000 0000000E

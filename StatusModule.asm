@@ -23,6 +23,20 @@ unknown:
     addi r3, r31, 0
 }
 
+Get End Frame crash fixed [Eon]
+HOOK @ $8071f714
+{
+    lwzu r4, 0x3C(r3)
+    cmpwi r4, 0
+    bne %end% 
+    stwu r1, -0xC(r1)
+    lis r0, 0xBF80
+    stw r0, 0x8(r1)
+    lfs f1, 0x8(r1)
+    addi r1, r1, 0xC
+    blr
+}
+
 #80B31FA0 = stOperatorInfo # might use this to render char info, is pointer list of stOperatorInfo = can use it to access each active char proper.
 #try using loop found within setSlow (80817C48), iterates through every fighter in the match. maybe place this function call within stage module so it runs only once?
 #still need text output  
@@ -169,13 +183,15 @@ HOOK @ $80541FC0
 .alias fighter = 27
 
 .alias messageObjOffset = 0x87C
+
 .alias initYOffset = 0x890
+.alias yoffsetEach = 0x894
 
 
-    stwu r1, -0x30(r1)
+    stwu r1, -0x60(r1)
     mflr r0
-    stw r0, 0x34 (r1)
-    stmw r27, 0x10(r1)
+    stw r0, 0x64(r1)
+    stmw r27, 0x40(r1)
     lis r3, 0x80b8
     lwz r3, 0x7C28(r3)
     
@@ -242,10 +258,10 @@ checkContinue:
 
 
 end:
-    lmw r27, 0x10(r1)
-    lwz r0, 0x34(r1)
+    lmw r27, 0x40(r1)
+    lwz r0, 0x64(r1)
     mtlr r0
-    addi r1, r1, 0x30
+    addi r1, r1, 0x60
     blr
 }
 HOOK @ $80541FC4
@@ -407,8 +423,22 @@ HOOK @ $80541fc8
     %callfunc(0x80069D40)
 
 
-    #std2dView
+    #std2DView
     %callfunc(0x8006b360)
+    
+    li r3, 0
+    %callfunc(0x801f4748);
+    li r3, 1
+    li r4, 3
+    li r5, 1
+    %callfunc(0x801F4774) #GXSetZmode(1,4,1)
+    li r3, 4
+    li r4, 0
+    li r5, 0
+    li r6, 4
+    li r7, 0
+    %callfunc(0x801f3fd8) #GXSetAlphaCompare(4,0,0,4,0)
+
 
     #drawbackgroundSquare
     #r3 = 4 positions, x1,y1, x2, y2, x3,y3, x4,y4
@@ -505,33 +535,3 @@ HOOK @ $80541fcc
     addi r1, r1, 0x10
     blr
 }
-#
-#
-#
-#
-#if object not created yet:
-#    pointer = __nw/[srHeapType]/sr_common(480, 15) = get memory pointer, might just replace with pointer to data i want if possible #size, heap
-#    if pointer != 0 #make sure pointer assigned works
-#        msg = __ct/[Message]/ms_message.o(pointer, 10, 15) #pointer something heap
-#        if msg != 0
-#            message.allocMsgBuf/[Message]/ms_message.o(msg, 1024, 1, 15) #pointer, buffer size, 
-#
-#on each frame you want to clear the inputs through 
-#message.clearMsgBuf/[Message]/ms_message(Message this)
-#
-#message.setMessageLocation(this, Double x1,Double y1,Double x2,Double y2) #0x80069AF0
-#message.setFace(this, int face) #0x8006A550 #pictochat/generic font = 4, victory screen font = 2
-#message.setFixedWidth(this, Double width) #0x8006A600 #only get results for -1 or 0, any other result is functionally equivalent 
-#message.setColour(this, int Colour) #0x8006A600
-#
-#message.setScale(this, double xScale, double yScale) #8006A018
-#message.setCursorX(this, double CursorX)    #0x80069970
-#message.setCursorY(this, double CursorY)    #0x80069A30
-#message.printf(this, Char* text, ....) #0x80069D40 crclr 6, 6 for no, cmp 1,1,1 to use float regs  
-#
-#static Message.std2DView() #0x8006B360 #creates matrix of 
-#[1,0,0,0]
-#[0,1,0,0]
-#[0,0,0,0] and makes GX use it, so good for writing to the screen
-#
-#message.printMsgBuf(this, int something) #0x8006AB48 #print to screen
