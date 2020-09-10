@@ -1,5 +1,5 @@
 Debug Loaded check 
-string "SAFE" @ $80541f8c
+string "DEV" @ $80541f8c
 
 ToggleDebugFlag
 HOOK @ $80541F98
