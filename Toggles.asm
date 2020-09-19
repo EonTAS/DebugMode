@@ -22,13 +22,15 @@ HOOK @ $80541F9C
 renderDebug/[gfSceneRoot]
 .alias stageID = 0
 .alias fighterID = 1
-.alias itemsarticles = 2
-.alias unk1ID = 3
-.alias globalFX1ID = 4
-.alias globalFX2ID = 5
-.alias unk2ID = 6
-.alias unk3ID = 7
+.alias itemsarticlesID = 2 #also includes primids etc
+.alias specialItemsID = 3 #specific items e.g. beam sword for some reason, assist trophy, food, starman, lightning, warpstar, star rod, goey bomb, freezie, hothead, team healer, screw attack, 
+.alias gfxID = 4
+.alias specificFXID = 5 #seems like it might literally just be the blue falcon
+.alias unk2ID = 6 #not spawned at all on spawn
+.alias unk3ID = 7 #appears once on spawn, is always on #ecMgr, seems to literally just be the manager itself, not what it draws?
 .alias interfaceID = 8
+
+#3,5,6,7 are confusing ones, everything else is understood
 
 HOOK @ $8000E7AC
 {
@@ -37,7 +39,7 @@ HOOK @ $8000E7AC
 	stw r0, 0x14(r1)
 	stw r31, 0x0C(r1)
 	stw r30, 0x08(r1)
-	mr	r31, r3
+	mr r31, r3
 
 	lis r4, 0x8054
 	ori r4, r4, 0x1f8c
@@ -47,21 +49,6 @@ HOOK @ $8000E7AC
 
 	lis r30, 0x8000
 	ori r30, r30, 0xD234
-debugOn:
-	li r4, stageID
-	li r5, 1
-	mtctr r30
-	bctrl
-	mr r3, r31
-	li r4, fighterID
-	li r5, 1
-	mtctr r30
-	bctrl	
-	mr r3, r31
-	li r4, interfaceID
-	li r5, 1
-	mtctr r30
-	bctrl
 char:
 	li r3, 4
 	lis r12, 0x8054 
@@ -69,10 +56,31 @@ char:
 	mtctr r12 
 	bctrl
 	cmpwi r3, 1
-	bne stage
+	li r5, 1
+	bne 0x8
+	li r5, 0
 	mr r3, r31
 	li r4, fighterID
-	li r5, 0
+	mtctr r30
+	bctrl
+	#r5 is untouched within function, probably shouldnt trust that if im good
+	mr r3, r31
+	li r4, gfxID
+	mtctr r30
+	bctrl
+	rlwimi r0, r5, 5, 26, 26
+	stb r0, 0x399(r3) #disables gfx draw too
+	#r5 is untouched within function, probably shouldnt trust that if im good
+	mr r3, r31
+	li r4, itemsarticlesID
+	mtctr r30
+	bctrl	
+	mr r3, r31
+	li r4, specialItemsID
+	mtctr r30
+	bctrl
+	mr r3, r31
+	li r4, specificFXID
 	mtctr r30
 	bctrl
 #disable stage render
@@ -83,10 +91,11 @@ stage:
 	mtctr r12 
 	bctrl
 	cmpwi r3, 2
-	bne interface
+	li r5, 1
+	bne 0x8
+	li r5, 0
 	mr r3, r31
 	li r4, stageID
-	li r5, 0
 	mtctr r30
 	bctrl
 interface:
@@ -96,24 +105,41 @@ interface:
 	mtctr r12 
 	bctrl
 	cmpwi r3, 1
-	bne end
+	li r5, 1
+	bne 0x8
+	li r5, 0
 	mr r3, r31
 	li r4, interfaceID
-	li r5, 0
 	mtctr r30
 	bctrl
 end:
-	lwz	r0, 0x14(r1)
-	lwz	r31, 0x0C(r1)
-	lwz	r30, 0x08(r1)
+	lwz r0, 0x14(r1)
+	lwz r31, 0x0C(r1)
+	lwz r30, 0x08(r1)
 	mtlr r0
 	addi r1, r1, 0x10
 	blr	
 
 }
+#0,4,7
 
-
-
+Item Destruction fix 
+HOOK @ $80712EA0
+{
+	lwz r4, 0xC(r31)
+	lis r3, 0x805A
+	lwz r3, -0x80(r3)
+	lis r12, 0x8000
+	ori r12, r12, 0xD10C
+	mtctr r12
+	bctrl
+	lwz r3, 0xC(r31)
+	lis r12, 0x8019
+	ori r12, r12, 0xD8D8
+	mtctr r12
+	bctrl
+}
+op b 0x14 @ $80712EA4
 
 !Code Menu Interface
 C0000000 0000000E

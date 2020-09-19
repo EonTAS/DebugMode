@@ -53,3 +53,6 @@ fix subspace enemies - waiting for brawlcrate bugfix
 better map out toggles
 better stage render toggle so it can be reenabled safely
 */
+
+#TEXT RENDERING BREAKS GRAPHICS BUT IS FIXED BY STAGE RENDERING, DONT WANT THAT
+#GET FIXED CAMERA WORKING
