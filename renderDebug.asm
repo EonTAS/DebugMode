@@ -1,4 +1,4 @@
-Set Cull Mode within default colour drawer [Eon]
+!Set Cull Mode within default colour drawer [Eon]
 HOOK @ $8001a79C
 {
 	li r3, 0
@@ -54,16 +54,12 @@ HOOK @ $8002e638
 	beq %end%
 	subi r4, r29, 1
 }
-#HOOK @ $8002DC74
-#{
-#	cmplwi r4, ProcessPosition
-#	blt end
-#	li r4, 16
-#	beq end
-#	subi r4, r4, 1
-#end:
-#	cmpwi r4, 8	
-#}
+HOOK @ $8002E5B4
+{
+	subi r4, r29, 1
+	rlwimi r3, 24, 16, 8, 15
+}
+
 Frame Advance Convert
 HOOK @ $8002E5C4
 {
