@@ -46,6 +46,8 @@ HOOK @ $800437DC
     %callfunc(0x80018DE4)
     lwz r31, 0(r31)
     %callfunc(0x8001A5C0)
+    li r3, 0 
+    %callfunc(0x801f136C)
     cmpwi r30, 0
     beq zmode0
 zmode1:
@@ -189,3 +191,159 @@ HOOK @ $80137F44
     blr
 }
 
+Draw Touching Planes [Eon]
+.macro callfunc(<addr>) 
+{
+.alias temp_Hi = <addr> / 0x10000
+.alias temp_Lo = <addr> & 0xFFFF
+  lis r12, temp_Hi
+  ori r12, r12, temp_Lo
+  mtctr r12
+  bctrl	
+}
+HOOK @ $80137B5C
+{
+    lis r0, 0xFF60
+    ori r0, r0, 0x20FF
+    stw r0, 0x1C(r1)
+leftWall:
+    lbz r0, 0x75(r29)
+    andi. r0, r0, 0x20
+    beq rightWall
+
+    lwz r5, 0xE4(r29)
+    cmpwi r5, 0
+    beq rightWall
+    lwz r3, 0xE8(r29)
+    cmpwi r3, 0
+    beq rightWall
+    lwz r3, 0xEC(r29)
+    cmpwi r3, 0
+    beq rightWall
+    addi r4, r1, 0x180
+    li r6, 0
+    %callfunc(0x80111968)
+    #slight offset from actual position
+    lfs f0, -0x68D0(r2)
+    lfs f1, 0x180(r1)
+    lfs f2, 0x188(r1)
+    fadds f1, f1, f0
+    fadds f2, f2, f0
+    stfs f1, 0x180(r1)
+    stfs f2, 0x188(r1)
+    #thickness
+    lfs f1, -0x68A8(r2)
+    addi r3, r1, 0x180
+    addi r4, r1, 0x1C
+    li r5, 0
+    %callfunc(0x80041104)
+
+rightWall:
+    lbz r0, 0x75(r29)
+    andi. r0, r0, 0x10
+    beq ciel
+    #0xF4 start
+    lwz r5, 0xF4(r29)
+    cmpwi r5, 0
+    beq ciel
+    lwz r3, 0xF8(r29)
+    cmpwi r3, 0
+    beq ciel
+    lwz r3, 0xFC(r29)
+    cmpwi r3, 0
+    beq ciel
+    addi r4, r1, 0x180
+    li r6, 0
+    %callfunc(0x80111968)
+    #slight offset from actual position
+    lfs f0, -0x68D0(r2)
+    lfs f1, 0x180(r1)
+    lfs f2, 0x188(r1)
+    fsubs f1, f1, f0
+    fsubs f2, f2, f0
+    stfs f1, 0x180(r1)
+    stfs f2, 0x188(r1)
+    #thickness
+    lfs f1, -0x68A8(r2)
+    addi r3, r1, 0x180
+    addi r4, r1, 0x1C
+    li r5, 0
+    %callfunc(0x80041104)
+ciel:
+    lbz r0, 0x75(r29)
+    andi. r0, r0, 0x40
+    beq floor
+    #0xD4
+    lwz r5, 0xD4(r29)
+    cmpwi r5, 0
+    beq floor
+    lwz r3, 0xD8(r29)
+    cmpwi r3, 0
+    beq floor
+    lwz r3, 0xDC(r29)
+    cmpwi r3, 0
+    beq floor
+    addi r4, r1, 0x180
+    li r6, 0
+    %callfunc(0x80111968)
+    #slight offset from actual position
+    lfs f0, -0x68D0(r2)
+    lfs f1, 0x184(r1)
+    lfs f2, 0x18C(r1)
+    fsubs f1, f1, f0
+    fsubs f2, f2, f0
+    stfs f1, 0x184(r1)
+    stfs f2, 0x18C(r1)
+    #thickness
+    lfs f1, -0x68A8(r2)
+    addi r3, r1, 0x180
+    addi r4, r1, 0x1C
+    li r5, 0
+    %callfunc(0x80041104)
+
+floor:
+    lbz r0, 0x75(r29)
+    andi. r0, r0, 0x80
+    beq end
+    #0xD4
+    lwz r5, 0x104(r29)
+    cmpwi r5, 0
+    beq end
+    lwz r3, 0x108(r29)
+    cmpwi r3, 0
+    beq end
+    lwz r3, 0x10C(r29)
+    cmpwi r3, 0
+    beq end
+    addi r4, r1, 0x180
+    li r6, 0
+    %callfunc(0x80111968)
+    #slight offset from actual position
+    lfs f0, -0x68D0(r2)
+    lfs f1, 0x184(r1)
+    lfs f2, 0x18C(r1)
+    fadds f1, f1, f0
+    fadds f2, f2, f0
+    stfs f1, 0x184(r1)
+    stfs f2, 0x18C(r1)
+    #thickness
+    lfs f1, -0x68A8(r2)
+    addi r3, r1, 0x180
+    addi r4, r1, 0x1C
+    li r5, 0
+    %callfunc(0x80041104)
+end:
+    li r0, 0
+}
+#0x150
+
+#the red "disabled collision"? 
+HOOK @ $80137D98
+{
+    li r3, 0xFF
+}
+#the blue "passed through"
+HOOK @ $80137EAC
+{
+    li r5, 48
+}
