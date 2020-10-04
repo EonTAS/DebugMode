@@ -327,78 +327,6 @@ CODE @ $80011BC8
 }
 
 
-#draw rectangle
-HOOK @ $80041F84
-{
-	#if transparent, skip to end
-	lbz r0, 0x3(r4)
-	cmpwi r0, 0
-	beq end
-	lwz r0, 0x0(r4)
-	stw r0, 0x10(r1)
-	%drawPart(0x0, 0x4, 0x0, 0xC, 31)
-	%drawPart(0x0, 0xC, 0x8, 0xC, 31)
-	%drawPart(0x8, 0xC, 0x8, 0x4, 31)
-	%drawPart(0x8, 0x4, 0x0, 0x4, 31)
-end:
-	lis r12, 0x8004
-	ori r12, r12, 0x2020
-	mtctr r12
-	bctr
-}
-#draw circle
-HOOK @ $80041634
-{
-	mr r27, r5
-	lbz r0, 0x3(r4)
-	cmpwi r0, 0
-	bne %end%
-	lis r12, 0x8004
-	ori r12, r12, 0x183C
-	mtctr r12
-	bctr
-}
-op li r3, 0xB0 @ $80041748 #change from filled in area to line strip
-op li r5, 17 @ $80041750
-HOOK @ $80041758
-{
-	li r0, 17
-	addi r4, r1, 0x34
-	mtctr r0
-top:
-	lfs f0, 0x0(r4)
-	lfs f1, 0x4(r4)
-	lfs f2, 0x8(r4)
-	stfs f0, -0x8000(r3)
-	stfs f1, -0x8000(r3)
-	stfs f2, -0x8000(r3)
-	stw r30, -0x8000(r3)
-	addi r4, r4, 0xC
-	bdnz top
-	lis r12, 0x8004
-	ori r12, r12, 0x1818
-	mtctr r12
-	bctr
-}
-#draw triangle
-HOOK @ $800428FC
-{
-	mr r31, r3 
-	lbz r0, 0x3(r4)
-	cmpwi r0, 0x0
-	beq end
-	lwz r0, 0x0(r4)
-	stw r0, 0x10(r1)
-	%drawPart(0x0, 0x4, 0x8, 0xC, 31)
-	%drawPart(0x8, 0xC, 0x10, 0x14, 31)
-	%drawPart(0x10, 0x14, 0x0, 0x4, 31)
-end:
-	lis r12, 0x8004
-	ori r12, r12, 0x2988
-	mtctr r12
-	bctr
-}
-
 
 /*
 0 = nop?, empty presenter used by boxes that dont outwardly state their function
@@ -437,3 +365,29 @@ end:
 #0x8  target group
 #0xC  target local group
 #0x14 team id
+*/
+
+clCircle draws perimeter instead of area [Eon]
+
+op li r3, 0xB0 @ $80041748 #change from filled in area to line strip
+op li r5, 17 @ $80041750
+HOOK @ $80041758
+{
+	li r0, 17
+	addi r4, r1, 0x34
+	mtctr r0
+top:
+	lfs f0, 0x0(r4)
+	lfs f1, 0x4(r4)
+	lfs f2, 0x8(r4)
+	stfs f0, -0x8000(r3)
+	stfs f1, -0x8000(r3)
+	stfs f2, -0x8000(r3)
+	stw r30, -0x8000(r3)
+	addi r4, r4, 0xC
+	bdnz top
+	lis r12, 0x8004
+	ori r12, r12, 0x1818
+	mtctr r12
+	bctr
+}
