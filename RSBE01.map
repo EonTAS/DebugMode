@@ -18,6 +18,7 @@
 80541Fc4 00000004 80541Fc4 0 displayFighter/[debug] (Entry char, int portNum, Bool nana, int lineNumber)
 80541Fc8 00000004 80541Fc8 0 printftoscreen/[debug]
 80541Fcc 00000004 80541Fcc 0 initialisePrinter/[debug]
+80541FD0 00000004 80541FD0 0 getAreaColour/[gfArea]/[debug]
 
 
 
