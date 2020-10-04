@@ -470,8 +470,6 @@ checkDistanceZero:
 	lfs f2, nearZeroNegative(dataBlock) #-0.000000001
 	fcmpo cr0, distance, f1
 	blt drawSphere
-#	fcmpo cr0, distance, f2
-#	bgt drawSphere
 	#reload dif in positions
 	lfs f3, 0x0(diffPos)
 	lfs f4, 0x4(diffPos)
@@ -512,9 +510,6 @@ drawSphere:
 	addi r4, r1, RadiusMatrixOffset
 	mr r5, r3
 	%PSMTXConcat()
-	#addi r3, r1, RadiusMatrixOffset
-	#addi r4, r1, End2MatrixOffset
-	#%PSMTXCopy()
 	b DrawSphereEnds
 
 drawCapsule:
