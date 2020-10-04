@@ -22,9 +22,7 @@
 
 
 
-80548400 00000020 80548400 0 data/sphere.bin/[debug] 
-80548420 000002D0 80548420 0 cylinder/sphere.bin/[debug]
-805486F0 00000460 805486F0 0 hemisphere/sphere.bin/[debug]
+80548400 00001640 80548400 0 debug.bin/[debug] 
 
 806b0984 000000bc 806b0984 0 create/[muSelectStageTask]/mu_select_stage.o
 806b0a40 000002ac 806b0a40 0 __ct/[muSelectStageTask]/mu_select_stage.o

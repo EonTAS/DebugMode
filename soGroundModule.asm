@@ -203,8 +203,9 @@ Draw Touching Planes [Eon]
 }
 HOOK @ $80137B5C
 {
-    lis r0, 0xFF60
-    ori r0, r0, 0x20FF
+    #805A2A5C (prev ECB colour) should probably move this to inside of the debug.bin
+    lis r3, 0x805A
+    lwz r0, 0x2A5C(r3)
     stw r0, 0x1C(r1)
 leftWall:
     lbz r0, 0x75(r29)

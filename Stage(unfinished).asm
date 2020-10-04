@@ -36,6 +36,7 @@ renderDebug/[Stage]
 	addi r3, r1, <Offset>
 	addi r4, r1, 0x08
 	li r5, 0
+	#0x800415E8
 	lis r12, 0x8004
 	ori r12, r12, 0x15E8
 	mtctr r12
@@ -134,7 +135,6 @@ charLoop:
 	mtctr r12
 	bctrl
 
-	#maybe make offset by camera location? since 
 	%drawPoint(0x20, 0x4040, 0x0000D0FF)
 
 	mr r3, r31
@@ -172,17 +172,17 @@ end:
 renderDebug/[grGimmick]
 HOOK @ $80978840
 {
-	stwu	r1, -0x0010 (r1)
-	mflr	r0
-	stw	r0, 0x14(r1)
-	stw	r31, 0x0C(r1)
-	mr	r31, r3
+	stwu r1, -0x0010 (r1)
+	mflr r0
+	stw r0, 0x14(r1)
+	stw r31, 0x0C(r1)
+	mr r31, r3
 	lis r12, 0x8096
 	ori r12, r12, 0xB334
 	mtctr 12 
 	bctrl
-	lwz	r0, 0x14(r1)
-	lwz	r31, 0x0C(r1)
+	lwz r0, 0x14(r1)
+	lwz r31, 0x0C(r1)
 	mtlr r0
 	addi r1, r1, 16
 	blr	
