@@ -147,6 +147,7 @@ debugDisplaySoCollisionAttackPart:
 	stw r29, 0x14(r1)
 	mr r30, r5
 	mr r29, r6
+	mr r31, r4
 	lwz r0, 0(r3)
 	cmpwi r0, 1
 	beq skip
@@ -162,7 +163,8 @@ debugDisplaySoCollisionAttackPart:
 	add r7, r7, r3
 	%storeColourSet(0x8, 0xC, 7)
 
-	mr r3, r5
+	mr r3, r30
+	mr r4, r31
 	#r4 from input = camera matrix
 	addi r5, r1, 0x8
 	addi r6, r1, 0xC
@@ -170,155 +172,6 @@ debugDisplaySoCollisionAttackPart:
 	lwz r12, 0x24(r12)
 	mtctr r12
 	bctrl 
-#TODO: decide if i should keep angle render
-#	lis r3, 0x4330
-#	stw r3, 0x30(r1)
-#
-#	lwz r3, 0x18(r29) #angle in degrees 
-#
-#	cmpwi r3, 361
-#	beq skip
-#	cmpwi r3, 363
-#	beq skip
-#	cmpwi r3, 365
-#	beq skip
-#
-#	stw r3, 0x34(r1)
-#	lfd f1, 0x30(r1)
-#	lfd f2, -0x6F98(r2) 
-#	fsubs f1, f1, f2 
-#	lfs f2, -0x5A6C(r2)
-#	fmuls f1, f1, f2
-#	lfs f2, -0x5B2C(r2)
-#	fdivs f1, f1, f2
-#
-#
-#	
-#	%callFunc(0x804004d8)
-#	lfd f2, 0x30(r1)
-#	stfs f1, 0x30(r1)
-#	lfd f1, -0x6F98(r2)
-#	fsubs f1, f2, f1
-#	lfs f2, -0x5A6C(r2)
-#	fmuls f1, f1, f2
-#	lfs f2, -0x5B2C(r2)
-#	fdivs f1, f1, f2
-#	%callFunc(0x804009e0)
-#
-#
-#	stfs f1, 0x34(r1)
-#
-#
-#	#do maths, put sin(r3) into 0x30(r1)
-#	#do maths, put cos(r3) into 0x34(r1)
-#	li r0, 0
-#	stw r0, 0x38(r1)
-#
-##getType
-#	mr r3, r30
-#	lwz r12, 0x30(r30)
-#	lwz r12, 0xC(r12)
-#	mtctr r12
-#	bctrl #get type
-#	cmpwi r3, 1
-#	beq capsule
-#sphere:
-#	lfs f1, 0xC(r30)
-#	lfs f2, 0x30(r1)
-#	lfs f3, 0x34(r1)
-#	fmuls f2, f1, f2
-#	fmuls f3, f1, f3
-#
-#	lfs f4, 0x0(r30)
-#	fadds f2, f2, f4
-#	lfs f5, 0x4(r30)
-#	fadds f3, f3, f5
-#	lfs f4, 0x8(r30)
-#
-#	stfs f2, 0x30(r1)
-#	stfs f3, 0x34(r1)
-#	stfs f4, 0x38(r1)
-#
-#	#pos1 = 0x0(r30)
-#	#pos2 = 0x30(r1)
-#
-#	lis r3, 0x4000
-#	stw r3, 0x3C(r1)
-#	lfs f1, 0x3C(r1)
-#
-#	mr r3, r30
-#	addi r4, r1, 0x30
-#	lis r5, 0xA0A0
-#	ori r5, r5, 0xA0FF
-#	stw r5, 0x3C(r1)
-#	addi r5, r1, 0x3C
-#	li r6, 1
-#	%callFunc(0x80541fb8)
-#	#drawLine(pos1, pos2, colour, linewidth)
-#	b skip
-#
-capsule:
-#	addi r3, r30, 0x40
-#	addi r4, r1, 0x40
-#	%callFunc(0x801ec184)
-#	
-#	addi r3, r1, 0x40
-#	addi r4, r1, 0x70
-#	%callFunc(0x801ec41c)
-#	#0x30 = transformation matrix
-#	#0x60 = inverse of transformation
-#	li r0, 0
-#	stw r0, 0x20(r1)
-#	stw r0, 0x24(r1)
-#	stw r0, 0x28(r1)
-#
-#	addi r3, r1, 0x40
-#	addi r4, r1, 0x20
-#	mr r5, r4
-#	%callFunc(0x801ecd70)
-#	addi r3, r1, 0x20
-#	addi r4, r1, 0x30
-#	mr r5, r4
-#	%callFunc(0x801ecfe4) #add angle offset to centre pos
-#
-#
-#	#at this point 0x20(r1) = center of sphere
-#	#at this point 0x30(r1) = point at angle theta away from centre unit length
-#
-#	
-#	addi r3, r1, 0x70 #inverse
-#	addi r4, r1, 0x30 #point
-#	mr r5, r4
-#	%callFunc(0x801ecd70)
-#	addi r3, r1, 0x30
-#	mr r4, r3
-#	%callFunc(0x801ed008) #normalise
-#	lfs f1, 0xC(r30)
-#
-#	lfs f2, 0x30(r1)
-#	lfs f3, 0x34(r1)
-#	lfs f4, 0x38(r1)
-#
-#	fmuls f2, f2, f1
-#	fmuls f3, f3, f1
-#	fmuls f4, f4, f1
-#
-#	stfs f2, 0x30(r1)
-#	stfs f3, 0x34(r1)
-#	stfs f4, 0x38(r1)
-#
-#	#scaled to fit radius now
-#
-#	addi r3, r1, 0x40
-#	addi r4, r1, 0x30
-#	mr r5, r4
-#	%callFunc(0x801ecd70)
-#
-#	#0x20 = pos1
-#	#0x30 = pos2
-#	#now draw a line joining the two 
-#
-#
 skip:
 	lwz r0, 0xA4(r1)
 	
