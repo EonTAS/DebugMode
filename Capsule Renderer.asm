@@ -221,7 +221,7 @@ HOOK @ $80541fa0
 .alias HemiSpherePosList	= 0x740 	#originally in melee at 0x803b9c80
 .alias HemiSpherePosListSize= 0x120
 
-  	
+#sets up and draws an individual set of points based on arguments provided, called to draw the two ends and the cylinder from data in debug.bin
 .macro DrawPart(<dataOffsetPosAttr>, <dataOffsetNrmAttr>, <dataOffsetPos>, <posListSize>, <matrixOffset>, <VTXAttrFmtThing>)
 {
   	%GXClearVtxDesc()
@@ -275,8 +275,6 @@ HOOK @ $80541fa0
 #0x110 -> 0x138 = ints
 #0x138 -> 0x148 = floats
 
-
-
 	stwu r1, -0x150(r1)
 	mflr r0
 	stw r0, 0x154(r1)
@@ -284,12 +282,16 @@ HOOK @ $80541fa0
 	stfd f31, 0x138(r1)
 	stfd f30, 0x140(r1) 
 
+#args stored to constant registers
 	fmr Radius, f1
+	mr ScaleMatrix, r3
 	mr Pos1, r4
 	mr Pos2, r5
+	mr Colour1, r6
+	mr Colour2, r7
 	mr ViewingMatrix, r8
-	mr ScaleMatrix, r3
 
+#creates locations of the vectors used for calculating shape
 	addi diffPos, r1, diffPosOffset
 	addi basis2, r1, basis2Offset
 	addi basis3, r1, basis3Offset
@@ -299,12 +301,11 @@ HOOK @ $80541fa0
 	stw r3, 0x4(basis2)
 	stw r3, 0x8(basis2)
 
+	#mem location of debug.bin
 	lis dataBlock, 0x8054
 	ori dataBlock, dataBlock, 0x8400
 
-	mr Colour1, r6
-	mr Colour2, r7
-
+#mostly copied from melees setup function, dont 100% understand everything in this
 SetGXSettings:
 	li r3, 1
 	%GXSetColorUpdate();
@@ -415,11 +416,11 @@ SetGXSettings:
 
 
 startShapeConstruction:
-  	#scaleMatrix subtracts position and removes scale stuff to be reapplied later
+  	#inverse of scaleMatrix subtracts position and removes scale stuff to be reapplied later, makes it so all work is on a unit shape at 0,0,0
   	mr r3, ScaleMatrix
   	addi r4, r1, TempMatrixOffset
   	%PSMTXInverse()
-
+	#mulls positions by inverse of scalematrix to remove all scale problems
   	addi r3, r1, TempMatrixOffset
   	mr r4, Pos1
   	addi r5, r1, Pos1Offset
@@ -431,6 +432,7 @@ startShapeConstruction:
   	mr Pos2, r5
   	%PSMTXMultVec()
 
+	#creates a matrix with diagonals of the radius such that it scales any shape by that radius
 	fmr f1, Radius
 	fmr f2, Radius
 	fmr f3, Radius
@@ -453,14 +455,14 @@ startShapeConstruction:
   	fsubs f5, f2, f1
   	stfs f5, 0x8(diffPos)
 
-  	fmulls f1, f3, f3
-  	fmulls f2, f4, f4
+  	fmulls f1, f3, f3 #x^2
+  	fmulls f2, f4, f4 #y^2
   	fadds f1, f1, f2
-  	fmulls f2, f5, f5
+  	fmulls f2, f5, f5 #z^2
   	fadds f1, f1, f2
-  	fmr distance, f1
+  	fmr distance, f1  #x^2 + y^2 + z^2
   	%rsqrtf()
-  	fmulls distance, distance, f1
+  	fmulls distance, distance, f1 #sqrt(x^2 + y^2 + z^2)
 
 checkDistanceZero:
 	#if absolute distance is neglibly small, draw a sphere
@@ -481,7 +483,7 @@ checkDistanceZero:
 	stfs f0, 0x4(basis2)
 	stfs f4, 0x0(basis2)
 
-	#if each individual distance is negligibly small, draw a sphere (unsure if this is needed, i think this is melee devs being dumb)
+	#if any individual part is neglibly small, no need to do extra basis setup
 	fcmpo cr0, f3, f1
 	bgt drawCapsule
 	fcmpo cr0, f3, f2
@@ -495,6 +497,7 @@ checkDistanceZero:
 	li r0, 0
 	stw r0, 0x4(basis2)
 
+	#check should be unneeded as this would only not get caught if initial distance check was already set up.
 	fcmpo cr0, f5, f1
 	bgt drawCapsule
 	fcmpo cr0, f5, f2
@@ -661,7 +664,7 @@ DrawSphereEnds:
   	%DrawPart(HemiSpherePosAttr, HemiSphereNrmAttr, HemiSpherePosList, HemiSpherePosListSize, End1MatrixOffset, 0xE)
   	%DrawPart(HemiSpherePosAttr, HemiSphereNrmAttr, HemiSpherePosList, HemiSpherePosListSize, End2MatrixOffset, 0xE)
 
-	
+end:	
 	lmw r22, 0x110(r1)
 	lfd f31, 0x138(r1)
 	lfd f30, 0x140(r1)
