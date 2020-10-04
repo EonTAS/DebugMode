@@ -332,17 +332,17 @@ data:
 	#		if max is negative, denotes you should decrement value, not increment.
 
 	#      HHHHPPPP;   ID  ;  max
-	word 0x00600004; word 0; word 1 #l-r held dpaddown press 	#debug toggle
-	word 0x00001000; word 1; word 1 #start press 				#pause
-	word 0x00000010; word 2; word 1 #z press 					#frame advance
-	word 0x00100000; word 3; word 30#z held 					#frame advance, will count up to 30 frames and then start doing auto frame advance
-	word 0x00200002; word 4; word 2 #R held dpadright press 	#hitbox toggle, 0,1,2
-	word 0x00400001; word 5; word 1 #L held dpadleft press 		#camera lock
-	word 0x08000002; word 6; word 1 #y held dpad right press 	#ledge grab box display
-	word 0x08000001; word 7; word 2 #y held dpad left press 	#ecb display, press twice to enable "ground stood on"
-	word 0x00400002; word 8; word 2 #L held dpadright press 	#stage collision display, twice to disable stage
-	word 0x04000001; word 9; word -32#X held dpadleft press 		#areamanager presets to scroll through
-	word 0x04000002; word 9; word 32 #X held dpadright press 		#areamanager presets to scroll through
+	word 0x00600004; word 0; word 1 	#l-r held dpaddown press 	#debug toggle
+	word 0x00001000; word 1; word 1 	#start press 				#pause
+	word 0x00000010; word 2; word 1 	#z press 					#frame advance
+	word 0x00100000; word 3; word 30	#z held 					#frame advance, will count up to 30 frames and then start doing auto frame advance
+	word 0x00200002; word 4; word 2 	#R held dpadright press 	#hitbox toggle, 0,1,2
+	word 0x00400001; word 5; word 1 	#L held dpadleft press 		#camera lock
+	word 0x08000002; word 6; word 1 	#y held dpad right press 	#ledge grab box display
+	word 0x08000001; word 7; word 2 	#y held dpad left press 	#ecb display, press twice to enable "ground stood on"
+	word 0x00400002; word 8; word 2 	#L held dpadright press 	#stage collision display, twice to disable stage
+	word 0x04000001; word 9; word -32	#X held dpadleft press 		#areamanager presets to scroll through
+	word 0x04000002; word 9; word 32 	#X held dpadright press 	#areamanager presets to scroll through
 
 	word 0xFFFFFFFF; word -1 #end
 
