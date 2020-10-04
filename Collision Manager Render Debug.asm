@@ -152,21 +152,6 @@ HOOK @ $80541F94
   bctrl	
 }
 
-.macro setColour(<r>, <g>, <b>)
-{
-	li r0, <r>
-	stb r0, 0x8(r1)	
-	li r0, <g>
-	stb r0, 0x9(r1)	
-	li r0, <b>
-	stb r0, 0xA(r1)
-}
-.macro setAlpha(<a>)
-{
-	li r0, <a>
-	stb r0, 0xB(r1)
-}
-
 .macro storeColour(<offset>)
 {
 	lbz r0, <offset>(dataBlock)
