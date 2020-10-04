@@ -57,7 +57,7 @@ HOOK @ $8002e638
 HOOK @ $8002E5B4
 {
 	subi r4, r29, 1
-	rlwimi r3, 24, 16, 8, 15
+	rlwimi r3, r4, 16, 8, 15
 }
 
 Frame Advance Convert
