@@ -215,10 +215,14 @@ gfAreaManager
 
 }
 
-#colour setup
-HOOK @ $8001147C
+#getAreaColour
+HOOK @ $80541FD0
 {
-	stw r3, 0xC(r1)
+	stwu r1, -0x10(r1)
+	mflr r0
+	stw r0, 0x14(r1)
+	stw r31, 0x8(r1)
+	mr r31, r3
 	li r3, 9
 	lis r12, 0x8054
 	ori r12, r12, 0x1F9C
@@ -227,62 +231,174 @@ HOOK @ $8001147C
 	cmpwi r3, 0
 	beq dontDraw
 	mr r5, r3
-	lwz r3, 0xC(r1) 
-	lwz r4, 0x8(r3)
+	lwz r4, 0x8(r31)
 	li r6, 1
 	slw r6, r6, r5
 	and. r0, r4, r6
 	bne listener
-	lbz r6, 0x1D(r3)
+	lbz r6, 0x1D(r31)
 	cmpw r5, r6
 	beq presenter
 dontDraw:
-	lis r12, 0x8001
-	ori r12, r12, 0x14C0
-	mtctr r12 
-	bctr
+	li r3, 0
 	b end
 listener:
-	lis r4, 0x00AA
-	ori r4, r4, 0xAAFF
+	lis r3, 0x00AA
+	ori r3, r3, 0xAAFF
 	b end
 presenter:
-	lis r4, 0x0 
-	ori r4, r4, 0xFFFF
+	lis r3, 0x0 
+	ori r3, r3, 0xFFFF
 end:
-	stw r4, 0xC(r1)
+	lwz r31, 0x8(r1)
+	lwz r0, 0x14(r1)
+	mtlr r0
+	addi r1, r1, 0x10
+	blr
 }
 
-#debug check?
-op nop @ $8001290c
+#debug check
+HOOK @ $80012908
+{
+	li r3, 9
+	lis r12, 0x8054
+	ori r12, r12, 0x1F9C
+	mtctr r12
+	bctrl
+	cmpwi r3, 0
+	mr r3, r31
+}
+
 ####
 #rectangles
 ####
 #for "off" boxes
-op nop @ $800114BC
-#draw rectangle
-HOOK @ $80041F80
+#set "off" colour to transparent, catch this is renderer
+word 0x00000000 @ $8059ff8c
+#gfAreaRect
+CODE @ $8001146C
 {
-	mr r31, r3 
+	stw r3, 0x8(r1)
+	lis r12, 0x8054
+	ori r12, r12, 0x1FD0
+	mtctr r12
+	bctrl
+	stw r3, 0xC(r1)
+	lwz r3, 0x8(r1)
+	addi r3, r3, 0x2C
+	addi r4, r1, 0xC
+	li r5, 1
+	lfs f1, -0x7F80(r2)
+	nop 
+}
+#gfAreaCircle
+CODE @ $80011798
+{
+	lis r12, 0x8054
+	ori r12, r12, 0x1FD0
+	mtctr r12
+	bctrl
+	stw r3, 0xC(r1)
+
+	addi r3, r1, 0x10
+	addi r4, r1, 0xC
+	li r5, 1
+	lfs f1, -0x7F80(r2)
+	nop 
+	nop 
+	nop 
+}
+#gfAreaTriangle
+CODE @ $80011BC8
+{
+	lis r12, 0x8054
+	ori r12, r12, 0x1FD0
+	mtctr r12
+	bctrl
+	stw r3, 0xC(r1)
+
+	addi r3, r1, 0x10
+	addi r4, r1, 0xC
+	li r5, 1
+	lfs f1, -0x7F80(r2)
+	nop 
+	nop 
+	nop 
+}
+
+
+#draw rectangle
+HOOK @ $80041F84
+{
+	#if transparent, skip to end
+	lbz r0, 0x3(r4)
+	cmpwi r0, 0
+	beq end
 	lwz r0, 0x0(r4)
 	stw r0, 0x10(r1)
 	%drawPart(0x0, 0x4, 0x0, 0xC, 31)
 	%drawPart(0x0, 0xC, 0x8, 0xC, 31)
 	%drawPart(0x8, 0xC, 0x8, 0x4, 31)
 	%drawPart(0x8, 0x4, 0x0, 0x4, 31)
-	mr r3, r31
+end:
+	lis r12, 0x8004
+	ori r12, r12, 0x2020
+	mtctr r12
+	bctr
+}
+#draw circle
+HOOK @ $80041634
+{
+	mr r27, r5
+	lbz r0, 0x3(r4)
+	cmpwi r0, 0
+	bne %end%
+	lis r12, 0x8004
+	ori r12, r12, 0x183C
+	mtctr r12
+	bctr
+}
+op li r3, 0xB0 @ $80041748 #change from filled in area to line strip
+op li r5, 17 @ $80041750
+HOOK @ $80041758
+{
+	li r0, 17
+	addi r4, r1, 0x34
+	mtctr r0
+top:
+	lfs f0, 0x0(r4)
+	lfs f1, 0x4(r4)
+	lfs f2, 0x8(r4)
+	stfs f0, -0x8000(r3)
+	stfs f1, -0x8000(r3)
+	stfs f2, -0x8000(r3)
+	stw r30, -0x8000(r3)
+	addi r4, r4, 0xC
+	bdnz top
+	lis r12, 0x8004
+	ori r12, r12, 0x1818
+	mtctr r12
+	bctr
+}
+#draw triangle
+HOOK @ $800428FC
+{
+	mr r31, r3 
+	lbz r0, 0x3(r4)
+	cmpwi r0, 0x0
+	beq end
+	lwz r0, 0x0(r4)
+	stw r0, 0x10(r1)
+	%drawPart(0x0, 0x4, 0x8, 0xC, 31)
+	%drawPart(0x8, 0xC, 0x10, 0x14, 31)
+	%drawPart(0x10, 0x14, 0x0, 0x4, 31)
+end:
+	lis r12, 0x8004
+	ori r12, r12, 0x2988
+	mtctr r12
+	bctr
 }
 
-CODE @ $80011480
-{
-	addi r3, r3, 44 
-	addi r4, r1, 0xC 
-	nop 
-	nop
-	nop	
-	nop
-	nop
-}
 
 /*
 0 = nop?, empty presenter used by boxes that dont outwardly state their function
@@ -318,36 +434,6 @@ CODE @ $80011480
 30 = surrounds ecb
 31 = spring
 
-
-*/
-####
-#circles
-####
-#for off circles 
-op nop @ $800117E8
-#logic at 80011758, gfAreaCircle
-#drawn for tink bomb exlosion, type 1A
-#those thunderclound enemies, type 0D
-#glunder, type 0B
-#jyk, type 0B
-#roturet, is its eyes. type type 0B, + 3 attached to its aiming path + 
-
-
-####
-#triangles
-####
-#for off triangles 
-op nop @ $80011c18
-HOOK @ $800428F8
-{
-	mr r31, r3 
-	lwz r0, 0x0(r4)
-	stw r0, 0x10(r1)
-	%drawPart(0x0, 0x4, 0x8, 0xC, 31)
-	%drawPart(0x8, 0xC, 0x10, 0x14, 31)
-	%drawPart(0x10, 0x14, 0x0, 0x4, 31)
-	mr r3, r31
-}
-
-#logic at 80011758, gfAreaCircle
-#used in pikmin stage, type 1B, is the waterfall stuff, conveyor
+#0x8  target group
+#0xC  target local group
+#0x14 team id
