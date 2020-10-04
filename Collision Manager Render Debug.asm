@@ -138,6 +138,7 @@ HOOK @ $80541F94
 {
 .alias SegmentData = 31
 .alias CollisionData = 30
+.alias dataBlock = 29
 .alias flags = 3
 .alias type = 4
 
@@ -160,13 +161,37 @@ HOOK @ $80541F94
 	li r0, <b>
 	stb r0, 0xA(r1)
 }
-.alias skipColour = 0x20
 .macro setAlpha(<a>)
 {
 	li r0, <a>
 	stb r0, 0xB(r1)
 }
-.alias skipAlpha = 0x10
+
+.macro storeColour(<offset>)
+{
+	lbz r0, <offset>(dataBlock)
+	stb r0, 0x8(r1)
+	lbz r0, <offset>+1(dataBlock)
+	stb r0, 0x9(r1)
+	lbz r0, <offset>+2(dataBlock)
+	stb r0, 0xA(r1)
+}
+.macro storeAlpha(<offset>)
+{
+	lbz r0, <offset>(dataBlock)
+	stb r0, 0xB(r1)
+}
+.alias notCollidableAlpha  = 0x90
+.alias superSoftAlpha      = 0x91
+.alias normalAlpha         = 0x92
+
+.alias passableFloorColour       = 0x94
+.alias solidFloorColour          = 0x98
+.alias ledgeColour               = 0x9C
+.alias ceilingColour             = 0xA0
+.alias nonWalljumpableWallColour = 0xA4
+.alias walljumpableWallColour    = 0xA8
+
 .macro isntAssigned()
 {
 	andi. r0, type, 0xF
@@ -234,42 +259,41 @@ HOOK @ $80541F94
 	stw	r0, 0x0034(r1)
 	stw r31, 0x30(r1)
 	stw r30, 0x2C(r1)
+	stw r29, 0x28(r1)
 
 	mr SegmentData, r3 
-	mr CollisionData, r4
+	mr CollisionData, r4	
+	#mem location of debug.bin
+	lis dataBlock, 0x8054
+	ori dataBlock, dataBlock, 0x8400
 	
-	li r3, 255
-	stw r3, 0x8(r1)
 
 	lbz flags, 0x10(CollisionData)
 	lbz type, 0xF(CollisionData)
 	%isntAssigned()
-	bne 0x10
-	%setAlpha(0)
-	beq draw
+	beq end #unassigned
+assigned:
 	%isPlayerCollidable()
-	bne 0x10
-	%setAlpha(128)
+	bne playerCollidable
+notCollidable:
+	%setAlpha(notCollidableAlpha)
 	b startColours
+playerCollidable:
 	%isSuperSoft()
-	beq startColours
-	%setAlpha(160)
+	bne superSoft
+normal:
+	%storeAlpha(normalAlpha)
+	b startColours
+superSoft:
+	%storeAlpha(superSoftAlpha)
+	b startColours
 
 startColours:
-	%isDropThrough()
-	beq solid 
 
-testPassableFloor:
+testFloor:
 	%isFloor()
-	beq solid 
-	%setColour(255, 255, 0)
-	b draw
-
-solid:
-testSolidFloor:
-	%isFloor()
-	beq testSolidCeiling 
-solidFloor:
+	beq testCeiling 
+Floor:
 	%isLeftLedge()
 	beq checkRightLedge
 #is a ledge, so calc positions to draw
@@ -303,8 +327,7 @@ checkRightLedge:
 	stfs f1, 0x1C(r1)
 
 drawLedge:
-
-	%setColour(255, 0, 255)
+	%storeColour(ledgeColour)
 	lfs f1, -0x68CC(r2)
 	fadds f1, f1, f1
 	addi r3, r1, 0x10
@@ -313,29 +336,35 @@ drawLedge:
 	%callFunc(0x80041104)
 
 drawFloor:
-	%setColour(0, 230, 230)
+	%isDropThrough()
+	beq solid 
+passable: 
+	%storeColour(passableFloorColour)
+	b draw
+solid:
+	%storeColour(solidFloorColour)
 	b draw
 
-testSolidCeiling:
+testCeiling:
 	%isCeiling()
-	beq testSolidWall 
-solidCeiling:
-	%setColour(230, 0, 0)
+	beq testWall 
+ceiling:
+	%storeColour(ceilingColour)
 	b draw
 
-testSolidWall:
+testWall:
 	%isLeftWall()
-	bne solidWall
+	bne wall
 	%isRightWall()
 	beq draw
-solidWall:
+wall:
 	%isNonWalljump()
 	beq walljumpableWall
 nonWalljumpableWall:
-	%setColour(0, 100, 0)
+	%storeColour(nonWalljumpableWallColour)
 	b draw
 walljumpableWall:
-	%setColour(0, 230, 0)
+	%storeColour(walljumpableWallColour)
 draw:
 	lfs f1, -0x68CC(r2)
 	mr r3, SegmentData
@@ -344,9 +373,10 @@ draw:
 	
 	%callFunc(0x80041104)
 	
-
+end:
 	lwz r31, 0x30(r1)
 	lwz r30, 0x2C(r1)
+	lwz r29, 0x28(r1)
 	lwz	r0, 0x34 (r1)
 	mtlr r0
 	addi r1, r1, 0x30

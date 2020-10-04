@@ -25,6 +25,19 @@ Bubble Colours
 .alias hitboxList 				= 0x64
 .alias hitboxListLength   = 8
 
+#stageRendering
+.alias notCollidableAlpha  = 0x90
+.alias superSoftAlpha      = 0x91
+.alias normalAlpha         = 0x92
+
+.alias passableFloorColour       = 0x94
+.alias solidFloorColour          = 0x98
+.alias ledgeColour               = 0x9C
+.alias ceilingColour             = 0xA0
+.alias nonWalljumpableWallColour = 0xA4
+.alias walljumpableWallColour    = 0xA8
+
+
 #$80548420
 .alias CylinderPosAttr		= 0x100 	#originally in melee at 803B9DA0
 .alias CylinderNrmAttr		= 0x240 	#originally in melee at 803b9ec0
