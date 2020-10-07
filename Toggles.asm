@@ -196,118 +196,148 @@ loc_0x60:
 }
 
 [Project+] Debug Controls v1.4 (Dolphin Fix v1.1) [Magus, ???, Eon] to be modified
-op lbz r0, 11(r25) @ $8002E5AC
-
-PULSE
+#op lbz r0, 11(r25) @ $8002E5AC
+HOOK @ $8002E5AC
 {
-.alias currPlayer = 31
-.alias prevInputsPointer = 30
-.alias currInputsPointer = 29
+	lbz r3, 0xB(r25)
+	andi. r3, r3, 2
+	beq end
+	li r3, 2
+	lis r12, 0x8054
+	ori r12, r12, 0x1F9C
+	mtctr r12
+	bctrl
+	cmpwi r3, 0
+	beq end
+	li r0, 0
+	b %end%
+end:
+	lbz r0, 0xB(r25)
+}
 
-.alias inputList = 28
-.alias inputCheck = 27
-.alias currInputMask = 26
-.alias pressedInputMask = 25
-.alias inputVariable = 24
+#80028a08 might be good place to hook to understand inputs, maybe just stick at the bottom of this and use contents of r3
+#r3 is input struct, 
+#0x0 current held
+#0x4 current held, 
+#0x8 held for more than 1 frame, 0xC is pressed this frame 
+#0xC pressed this frame
+#0x10 released this frame
+#0x18 pressed this frame
 
-.alias prevInputs = 20
-.alias currInputs = 21
-.alias pressedInputs = 22
+#0x38 controller active
+#0x3C controller type, 0 = gcc, 1 = classic controller, 2 = wiimote, 3 = mote+nunchuk
+HOOK @ $8002A5E4
+{
+.alias inputVariable = 27
+.alias currInputs = 28
+.alias heldInputs = 29
 
-	stwu r1,-0x80(r1)	# make space for 18 registers
-	stmw r3,8(r1)	# push r3-r31 onto the stack
+.alias inputData = 31
+.alias toggleList = 30
+#pretending this is an arg so i dont have to mess with things
+	mr r3, r27
+
+	stwu r1, -0x30(r1)	# make space for 18 registers
+	stmw r27, 0x8(r1)	# push r3-r31 onto the stack
 	mflr r0
-	stw r0, 0x80(r1)
+	stw r0, 0x34(r1)
 
+	mr inputData, r3
+	bl data
+	mflr toggleList #pointer to data
 
-	li currPlayer, 0
-	lis prevInputsPointer, 0x8058 #prev inputs 
-	ori prevInputsPointer, prevInputsPointer, 0x4000
-	lis currInputsPointer, 0x804D #curr inputs
-	ori currInputsPointer, currInputsPointer, 0xE4B0
-	bl data 
-	mflr inputList #pointer to data
-start:
-	lwzx prevInputs, prevInputsPointer, currPlayer #prev inputs #buttons and control stick
-	rlwinm prevInputs, prevInputs, 16, 16, 31 #prev button inputs 
+	lbz r4, 0x38(inputData)
+	cmpwi r4, 0 #controller enabled
+	bne end
+	lwz r4, 0x3C(inputData)
+	cmpwi r4, 0 #gamecube controller
+	bne end
 
-	lwzx currInputs, currInputsPointer, currPlayer #curr inputs #buttons and control stick
-	stwx currInputs, prevInputsPointer, currPlayer #store curr as next prev
-	rlwinm currInputs, currInputs, 16, 16, 31 #curr button inputs held
-
-	addi r3, currPlayer, 0x4
-	lwzx r4, currInputsPointer, r3 #curr inputs #cstick and triggers
-	stwx r4, prevInputsPointer, r3 #store curr as next prev 
-
-
-
-	xor pressedInputs, prevInputs, currInputs
-	and pressedInputs, currInputs, pressedInputs
-
-	li inputCheck, 0
+	lwz currInputs, 0x0(inputData)
+	lwz heldInputs, 0xC(inputData)
 inputLoop:
-	addi r3, inputCheck, 4 
-	lwzx inputVariable, inputList, r3
+	lwz inputVariable, 0x4(toggleList)
 	cmpwi inputVariable, -1
-	beq next 
-
-
-	lhzx currInputMask, inputList, inputCheck
-	addi r3, inputCheck, 2
-	lhzx pressedInputMask, inputList, r3
-
-	and r3, currInputs, currInputMask
-	cmpw r3, currInputMask
-	bne inputLoopNext
-	and r4, pressedInputs, pressedInputMask
-	cmpw r4, pressedInputMask
-	bne inputLoopNext
-
-	addi r3, inputCheck, 8
-	lwzx r5, inputList, r3
+	beq end 
+	lhz r3, 0x0(toggleList)
+	lhz r4, 0x2(toggleList)
+	#if current input matches toggles input
+	and r0, currInputs, r3
+	cmpw r3, r0
+	bne next
+	#if held input matches toggles input
+	and r0, heldInputs, r4
+	cmpw r4, r0
+	bne next
+	#r5 = max value of toggled value read
+	lwz r5, 0x8(toggleList)
+	#debug list
 	lis r3, 0x8054
 	ori r3, r3, 0x2000
+writeValue:
+	#debug value
 	lbzx r4, r3, inputVariable
+
 	cmpwi r5, 0
 	blt dec
+inc:
 	addi r4, r4, 1
 	b wrap
-
 dec:
 	subi r4, r4, 1
 	mulli r5, r5, -1
 wrap:
 	cmpw r4, r5
-	ble 0x8
-	li r4, 0
+	bgt wrapOver
 	cmpwi r4, 0
-	bge 0x8 
+	bge store
+wrapUnder:
 	mr r4, r5
+	b store
+wrapOver:
+	li r4, 0
+store:
 	stbx r4, r3, inputVariable
-	b inputLoopNext
+specialCases:
+	cmpwi inputVariable, 0
+	beq debugToggle
+	cmpwi inputVariable, 3
+	beq debugFrameAdvanceFast
 
-
-	
-	
-inputLoopNext:
-	addi inputCheck, inputCheck, 0xC
-	b inputLoop
-
-
+debugToggle:
+	#enable everything
+	li r3, -1
+	cmpwi r4, 1
+	beq 0x8
+	li r3, 1
+#	setInputMask()
+	b next
+debugFrameAdvanceFast:
+	cmpwi r4, 0
+	beq next
+	cmpw r4, r5
+	blt next
+	subi r4, r5, 2
+	stbx r4, r3, inputVariable #set timer for next z input to 2 frames from now
+	li inputVariable, 2 #set type to frame advance input
+	li r5, 8 #
+	b writeValue
 
 next:
+	addi toggleList, toggleList, 0xC
+	b inputLoop
 
-	addi currPlayer, currPlayer, 0x8
-	cmpwi currPlayer, 0x20
+end:
+	mr r3, inputData
 
-	blt start
-
-
-	lwz r0, 0x80(r1)
+	lwz r0, 0x34(r1)
 	mtlr r0
-	lmw r3, 0x8(r1)
-	addi r1, r1, 0x80
-	blr
+	lmw r27, 0x8(r1)
+	addi r1, r1, 0x30
+
+	#original command
+	addi r29, r29, 1
+	b %end%
 data:
 	blrl
 	######################## 
@@ -334,8 +364,10 @@ data:
 	#      HHHHPPPP;   ID  ;  max
 	word 0x00600004; word 0; word 1 	#l-r held dpaddown press 	#debug toggle
 	word 0x00001000; word 1; word 1 	#start press 				#pause
-	word 0x00000010; word 2; word 1 	#z press 					#frame advance
-	word 0x00100000; word 3; word 30	#z held 					#frame advance, will count up to 30 frames and then start doing auto frame advance
+	word 0x00100000; word 2; word 0		#z held						#frame advance clear
+	word 0x00000010; word 2; word 8 	#z press 					#frame advance
+	word 0x00000010; word 3; word 0 	#z press					#frame advance fast clear
+	word 0x00100000; word 3; word 60	#z held 					#frame advance fast, will count up to 60 frames and then start doing auto frame advance
 	word 0x00200002; word 4; word 2 	#R held dpadright press 	#hitbox toggle, 0,1,2
 	word 0x00400001; word 5; word 1 	#L held dpadleft press 		#camera lock
 	word 0x08000002; word 6; word 1 	#y held dpad right press 	#ledge grab box display
