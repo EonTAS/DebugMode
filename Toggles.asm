@@ -1,21 +1,21 @@
 Debug Loaded check 
 string "DEV" @ $80541f8c
 
-ToggleDebugFlag
+WriteDebugFlag
 HOOK @ $80541F98
 {
-	mr r0, r3
-	lis r3, 0x8054
-	ori r3, r3, 0x2000
+	lis r5, 0x8054
+	ori r5, r5, 0x2000
+	stbx r4, r5, r3
+	blr
 
 }
 Read Debug Flag 
 HOOK @ $80541F9C
 {
-	mr r0, r3 
-	lis r3, 0x8054
-	ori r3, r3, 0x2000
-	lbzx r3, r3, r0
+	lis r4, 0x8054
+	ori r4, r4, 0x2000
+	lbzx r3, r4, r3
 	blr
 }
 
@@ -159,29 +159,31 @@ C0000000 0000000E
 38210020 4E800020
 
 
-!Debug Start Input v1.2 [Magus, ???] 
-HOOK @ $801E6D1C #x+dpadup = start press, gotta get r4 going into process to be 1 so frame doesnt advance
+Debug Start Input v1.2 [Magus, ???] 
+HOOK @ $801E6D1C #x+dpadup = start press, gotta get r4 going into process/gfTaskScheduduler to be 1 so frame doesnt advance
 {
 loc_0x0:
   lwzx r0, r3, r4
-  lis r6, 0x8058
+  #if debug enabled?
+  lis r6, 0x8058 #debug flags
   ori r6, r6, 0x3FFE
   lhz r5, 0(r6)
   rlwinm. r5, r5, 0, 31, 31
+  #if paused?
   lis r6, 0x805B
   ori r6, r6, 0x8A0A
   lhz r5, 0(r6)
-  bne- loc_0x30
+  bne- loc_0x30 #if enabled go straight to logic
   rlwinm. r7, r0, 0, 3, 3
-  beq+ loc_0x60
-  b loc_0x50
+  beq+ loc_0x60 #if start press not occurs, exit
+  b loc_0x50  #if not enabled, if start press occurs go straight to unfreeze always
 
 loc_0x30:
   lis r7, 0x1000
   not r7, r7
-  and. r0, r0, r7
-  andis. r7, r0, 0x408
+  and. r0, r0, r7 #remove start press from button occurences if debug enabled
   lis r8, 0x408
+  and. r7, r7, r8 #if x+dpad up pressed, pretend pause pressed and unfreeze
   cmpw r7, r8
   bne+ loc_0x60
   oris r0, r0, 0x1000
@@ -194,7 +196,18 @@ loc_0x50:
 
 loc_0x60:
 }
+HOOK @ $80048E24
+{
+	#if paused, pretend r7 = 255 aka z maps to nothing, else do normal 
 
+	lis r12, 0x805B
+	ori r12, r12, 0x8A0A
+	lhz r12, 0(r12)
+	andi. r12, r12, 2
+	li r7, 0xFF
+	bne %end%
+	lbz r7, 0x2(r5)
+}
 [Project+] Debug Controls v1.4 (Dolphin Fix v1.1) [Magus, ???, Eon] to be modified
 #op lbz r0, 11(r25) @ $8002E5AC
 HOOK @ $8002E5AC
@@ -379,4 +392,3 @@ data:
 	word 0xFFFFFFFF; word -1 #end
 
 }
-
