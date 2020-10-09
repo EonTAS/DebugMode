@@ -146,7 +146,9 @@ op b 0x14 @ $80712EA4
 HOOK @ $8002E5AC
 {
 	lbz r3, 0xB(r25)
-	andi. r3, r3, 2
+	andi. r0, r3, 4
+	bne unpause
+	andi. r0, r3, 2
 	beq end
 	li r3, 2
 	lis r12, 0x8054
@@ -157,6 +159,12 @@ HOOK @ $8002E5AC
 	beq end
 	li r0, 0
 	b %end%
+unpause:
+	li r4, 0x6
+	not r4, r4
+	and r3, r3, r4
+	stb r3, 0xB(r25)
+	li r26, 0 #force pause this frame to disable inputs from being processed
 end:
 	lbz r0, 0xB(r25)
 }
@@ -248,6 +256,8 @@ inputLoop:
 	and r0, heldInputs, r4
 	cmpw r4, r0
 	bne next
+
+	lbzx r4, debugData, inputVariable
 	#r5 = max value of toggled value read
 	lwz r5, 0x8(toggleList)
 writeValue:
@@ -283,16 +293,44 @@ specialCases:
 	beq debugFrameAdvance
 	cmpwi inputVariable, 3
 	beq debugFrameAdvanceFast
+	cmpwi inputVariable, 10
+	beq fakePause
 	b next
 
 debugToggle:
 	#enable everything
 	cmpwi r4, 1
-	beq debugOff
-debugOn:
+	beq debugOn
+debugOff:
+	
+	lis r3, 0x805A
+	lwz r3, 0x1D0(r3)
+	li r4, 0x28
+	li r5, -1
+	li r6, 0
+	li r7, 0
+	li r8, -1
+	lis r12, 0x8007
+	ori r12, r12, 0x42b0
+	mtctr r12
+	bctrl
+
 	li r3, 0x1
 	b debugToggleEnd
-debugOff:
+debugOn:
+	
+	lis r3, 0x805A
+	lwz r3, 0x1D0(r3)
+	li r4, 0x1ef1
+	li r5, -1
+	li r6, 0
+	li r7, 0
+	li r8, -1
+	lis r12, 0x8007
+	ori r12, r12, 0x42b0
+	mtctr r12
+	bctrl
+	
 	li r3, -1
 	li r4, 0xC #disable frame advance and fast frame advance
 	xor r3, r3, r4
@@ -301,21 +339,56 @@ debugToggleEnd:
 	b next
 debugPause:
 	#change all blind xor's to specifically checking if should be on or off and toggling appropriately
+	cmpwi r4, 0
+	
+	lwz r3, 0xC(inputData)
+	xori r3, r3, 0x1000 #delete start input
+	stw r3, 0xC(inputData)
+	
+	
+	beq debugPauseOff
+debugPauseOn:
 	lwz r3, 0x20(debugData)
-	xori r3, r3, 0xC
+	ori r3, r3, 0xC
 	stw r3, 0x20(debugData)
 
 	lis r3, 0x805b
 	ori r3, r3, 0x8a00
 	lbz r4, 0xB(r3)
-	xori r4, r4, 0x2
+	ori r4, r4, 0x2
 	stb r4, 0xB(r3)
 
-	lwz r3, 0xC(inputData)
-	xori r3, r3, 0x1000 #delete start input
-	stw r3, 0xC(inputData)
+	b debugPauseEnd
+debugPauseOff:
+	lwz r3, 0x20(debugData)
+	li r4, 0xC
+	not r4, r4
+	and r3, r3, r4
+	stw r3, 0x20(debugData)
+
+	lis r3, 0x805b
+	ori r3, r3, 0x8a00
+	lbz r4, 0xB(r3)
+	li r5, 0x2
+	not r5, r5
+	and r4, r4, r5
+	ori r4, r4, 0x4
+	stb r4, 0xB(r3)
+
+debugPauseEnd:
+
+	lis r3, 0x805A
+	lwz r3, 0x1D0(r3)
+	li r4, 0x24
+	li r5, -1
+	li r6, 0
+	li r7, 0
+	li r8, -1
+	lis r12, 0x8007
+	ori r12, r12, 0x42b0
+	mtctr r12
+	bctrl
 	b end
-	
 	
 
 debugFrameAdvance:
@@ -340,6 +413,16 @@ debugFrameAdvanceFast:
 	li inputVariable, 2 #set type to frame advance input
 	li r5, 8 #
 	b writeValue
+fakePause:
+	lwz r3, 0xC(inputData)
+	ori r3, r3, 0x1000 #add start input to game
+	stw r3, 0xC(inputData)
+	#turn off debug pause
+	li r4, 0
+	li inputVariable, 0x1
+	
+	stbx r4, debugData, inputVariable
+	b debugPauseOff 
 
 next:
 	addi toggleList, toggleList, 0xC
@@ -381,10 +464,10 @@ data:
 	#      HHHHPPPP;   ID  ;  max
 	word 0x00600004; word 0; word 1 	#l-r held dpaddown press 	#debug toggle
 	word 0x00001000; word 1; word 1 	#start press 				#debug pause
-	#x + dpad up 
+	word 0x04000008; word 10;  word 0 	#x+dpad up	
 	word 0x00000010; word 2; word 8 	#z press 					#frame advance
 	word 0x00000010; word 3; word 0 	#z press					#frame advance fast clear
-	word 0x00100000; word 3; word 60	#z held 					#frame advance fast, will count up to 60 frames and then start doing auto frame advance
+	word 0x00100000; word 3; word 30	#z held 					#frame advance fast, will count up to 60 frames and then start doing auto frame advance
 	word 0x00200002; word 4; word 2 	#R held dpadright press 	#hitbox toggle, 0,1,2
 	word 0x00400001; word 5; word 1 	#L held dpadleft press 		#camera lock
 	word 0x08000002; word 6; word 1 	#y held dpad right press 	#ledge grab box display
