@@ -335,6 +335,11 @@ HOOK @ $800B08A0
 	ori r12, r12, 0xB400
 	mtctr r12
 	bctrl
+	
+	lis r3, 0x8054
+	ori r3, r3, 0x2000
+	li r4, 1
+	stw r4, 0x20(r3)
 
 end:
 	lwz r0, 0xB8(r1)

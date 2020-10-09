@@ -141,73 +141,6 @@ HOOK @ $80712EA0
 }
 op b 0x14 @ $80712EA4
 
-!Code Menu Interface
-C0000000 0000000E
-9421FFE0 7C0802A6
-90010024 90610020
-9081001C 90A10018
-90C10014 3C608054
-60632000 3C80804E
-60840938 38A00010
-48000018 80040000
-98030000 38630001
-38840028 38A5FFFF
-2C050000 4080FFE8
-80610020 8081001C
-80A10018 80C10014
-80010024 7C0803A6
-38210020 4E800020
-
-
-Debug Start Input v1.2 [Magus, ???] 
-HOOK @ $801E6D1C #x+dpadup = start press, gotta get r4 going into process/gfTaskScheduduler to be 1 so frame doesnt advance
-{
-loc_0x0:
-  lwzx r0, r3, r4
-  #if debug enabled?
-  lis r6, 0x8058 #debug flags
-  ori r6, r6, 0x3FFE
-  lhz r5, 0(r6)
-  rlwinm. r5, r5, 0, 31, 31
-  #if paused?
-  lis r6, 0x805B
-  ori r6, r6, 0x8A0A
-  lhz r5, 0(r6)
-  bne- loc_0x30 #if enabled go straight to logic
-  rlwinm. r7, r0, 0, 3, 3
-  beq+ loc_0x60 #if start press not occurs, exit
-  b loc_0x50  #if not enabled, if start press occurs go straight to unfreeze always
-
-loc_0x30:
-  lis r7, 0x1000
-  not r7, r7
-  and. r0, r0, r7 #remove start press from button occurences if debug enabled
-  lis r8, 0x408
-  and. r7, r7, r8 #if x+dpad up pressed, pretend pause pressed and unfreeze
-  cmpw r7, r8
-  bne+ loc_0x60
-  oris r0, r0, 0x1000
-
-loc_0x50:
-  cmpwi r5, 0x0
-  beq+ loc_0x60
-  li r5, 0x0
-  sth r5, 0(r6)
-
-loc_0x60:
-}
-HOOK @ $80048E24
-{
-	#if paused, pretend r7 = 255 aka z maps to nothing, else do normal 
-
-	lis r12, 0x805B
-	ori r12, r12, 0x8A0A
-	lhz r12, 0(r12)
-	andi. r12, r12, 2
-	li r7, 0xFF
-	bne %end%
-	lbz r7, 0x2(r5)
-}
 [Project+] Debug Controls v1.4 (Dolphin Fix v1.1) [Magus, ???, Eon] to be modified
 #op lbz r0, 11(r25) @ $8002E5AC
 HOOK @ $8002E5AC
@@ -227,7 +160,16 @@ HOOK @ $8002E5AC
 end:
 	lbz r0, 0xB(r25)
 }
-
+HOOK @ $8002E68C
+{
+	li r3, 2
+	li r4, 0
+	lis r12, 0x8054
+	ori r12, r12, 0x1F98
+	mtctr r12
+	bctrl
+	lhz r30, 0x140(r25)
+}
 #80028a08 might be good place to hook to understand inputs, maybe just stick at the bottom of this and use contents of r3
 #r3 is input struct, 
 #0x0 current held
@@ -235,27 +177,36 @@ end:
 #0x8 held for more than 1 frame, 0xC is pressed this frame 
 #0xC pressed this frame
 #0x10 released this frame
-#0x18 pressed this frame
+#0x14 pressed this frame
 
 #0x38 controller active
 #0x3C controller type, 0 = gcc, 1 = classic controller, 2 = wiimote, 3 = mote+nunchuk
-HOOK @ $8002A5E4
+#modifying 0x0 offset lets me edit controls before processed, can likely delete 
+HOOK @ $8002A258
 {
+.alias inputsOtherList = 26
+
 .alias inputVariable = 27
 .alias currInputs = 28
 .alias heldInputs = 29
 
 .alias inputData = 31
 .alias toggleList = 30
-#pretending this is an arg so i dont have to mess with things
-	mr r3, r27
 
-	stwu r1, -0x30(r1)	# make space for 18 registers
-	stmw r27, 0x8(r1)	# push r3-r31 onto the stack
+.alias debugData = 25
+
+.alias debugMask = 24
+#pretending this is an arg so i dont have to mess with things
+	mr r3, r29
+	mr r4, r28
+
+	stwu r1, -0x30(r1)
+	stmw r24, 0x8(r1)
 	mflr r0
 	stw r0, 0x34(r1)
 
 	mr inputData, r3
+	mr inputsOtherList, r4
 	bl data
 	mflr toggleList #pointer to data
 
@@ -265,6 +216,12 @@ HOOK @ $8002A5E4
 	lwz r4, 0x3C(inputData)
 	cmpwi r4, 0 #gamecube controller
 	bne end
+	#li r4, 0
+	#stw r4, 0x0(inputData)
+	#b end
+	lis debugData, 0x8054
+	ori debugData, debugData, 0x2000
+	lwz debugMask, 0x20(debugData)
 
 	lwz currInputs, 0x0(inputData)
 	lwz heldInputs, 0xC(inputData)
@@ -272,6 +229,11 @@ inputLoop:
 	lwz inputVariable, 0x4(toggleList)
 	cmpwi inputVariable, -1
 	beq end 
+	li r3, 1
+	slw r3, r3, inputVariable
+	and. r3, debugMask, r3 
+	beq next
+
 	lhz r3, 0x0(toggleList)
 	lhz r4, 0x2(toggleList)
 	#if current input matches toggles input
@@ -284,12 +246,9 @@ inputLoop:
 	bne next
 	#r5 = max value of toggled value read
 	lwz r5, 0x8(toggleList)
-	#debug list
-	lis r3, 0x8054
-	ori r3, r3, 0x2000
 writeValue:
 	#debug value
-	lbzx r4, r3, inputVariable
+	lbzx r4, debugData, inputVariable
 
 	cmpwi r5, 0
 	blt dec
@@ -310,20 +269,62 @@ wrapUnder:
 wrapOver:
 	li r4, 0
 store:
-	stbx r4, r3, inputVariable
+	stbx r4, debugData, inputVariable
 specialCases:
 	cmpwi inputVariable, 0
 	beq debugToggle
+	cmpwi inputVariable, 1
+	beq debugPause
+	cmpwi inputVariable, 2
+	beq debugFrameAdvance
 	cmpwi inputVariable, 3
 	beq debugFrameAdvanceFast
+	b next
 
 debugToggle:
 	#enable everything
-	li r3, -1
 	cmpwi r4, 1
-	beq 0x8
-	li r3, 1
-#	setInputMask()
+	beq debugOff
+debugOn:
+	li r3, 0x1
+	b debugToggleEnd
+debugOff:
+	li r3, -1
+	li r4, 0xC #disable frame advance and fast frame advance
+	xor r3, r3, r4
+debugToggleEnd:
+	stw r3, 0x20(debugData)
+	b next
+debugPause:
+	#change all blind xor's to specifically checking if should be on or off and toggling appropriately
+	lwz r3, 0x20(debugData)
+	xori r3, r3, 0xC
+	stw r3, 0x20(debugData)
+
+	lis r3, 0x805b
+	ori r3, r3, 0x8a00
+	lbz r4, 0xB(r3)
+	xori r4, r4, 0x2
+	stb r4, 0xB(r3)
+
+	lwz r3, 0xC(inputData)
+	xori r3, r3, 0x1000 #delete start input
+	stw r3, 0xC(inputData)
+	b end
+	
+	
+
+debugFrameAdvance:
+	li r3, -1
+	subi r3, r3, 0x10
+	
+	lwz r4, 0x0(inputsOtherList)
+	and r4, r3, r4
+	stw r4, 0x0(inputsOtherList)
+	
+	lwz r4, 0x4(inputsOtherList)
+	and r4, r3, r4
+	stw r4, 0x4(inputsOtherList)
 	b next
 debugFrameAdvanceFast:
 	cmpwi r4, 0
@@ -331,7 +332,7 @@ debugFrameAdvanceFast:
 	cmpw r4, r5
 	blt next
 	subi r4, r5, 2
-	stbx r4, r3, inputVariable #set timer for next z input to 2 frames from now
+	stbx r4, debugData, inputVariable #set timer for next z input to 2 frames from now
 	li inputVariable, 2 #set type to frame advance input
 	li r5, 8 #
 	b writeValue
@@ -345,11 +346,11 @@ end:
 
 	lwz r0, 0x34(r1)
 	mtlr r0
-	lmw r27, 0x8(r1)
+	lmw r24, 0x8(r1)
 	addi r1, r1, 0x30
 
 	#original command
-	addi r29, r29, 1
+	addi r27, r27, 1
 	b %end%
 data:
 	blrl
@@ -373,11 +374,10 @@ data:
 	# ID = which debug option its changing, ID of -1 = end of list
 	# max = max value to set value to before wrap-around kicks in
 	#		if max is negative, denotes you should decrement value, not increment.
-
 	#      HHHHPPPP;   ID  ;  max
 	word 0x00600004; word 0; word 1 	#l-r held dpaddown press 	#debug toggle
-	word 0x00001000; word 1; word 1 	#start press 				#pause
-	word 0x00100000; word 2; word 0		#z held						#frame advance clear
+	word 0x00001000; word 1; word 1 	#start press 				#debug pause
+	#x + dpad up 
 	word 0x00000010; word 2; word 8 	#z press 					#frame advance
 	word 0x00000010; word 3; word 0 	#z press					#frame advance fast clear
 	word 0x00100000; word 3; word 60	#z held 					#frame advance fast, will count up to 60 frames and then start doing auto frame advance
