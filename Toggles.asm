@@ -161,13 +161,17 @@ end:
 	lbz r0, 0xB(r25)
 }
 HOOK @ $8002E68C
-{
+{	
+	lbz r3, 0xB(r25)
+	andi. r3, r3, 2
+	beq end
 	li r3, 2
 	li r4, 0
 	lis r12, 0x8054
 	ori r12, r12, 0x1F98
 	mtctr r12
 	bctrl
+end:
 	lhz r30, 0x140(r25)
 }
 #80028a08 might be good place to hook to understand inputs, maybe just stick at the bottom of this and use contents of r3
