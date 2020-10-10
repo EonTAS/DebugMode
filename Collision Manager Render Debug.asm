@@ -382,18 +382,13 @@ HOOK @ $80041130
 	bctr
 }
 #clRect
-HOOK @ $80041F84
+HOOK @ $80041F80
 {
 	#if transparent, skip to end
+	mr r31, r3
 	lbz r0, 0x3(r4)
 	cmpwi r0, 0
-	beq end
-	lwz r0, 0x0(r4)
-	stw r0, 0x10(r1)
-	%drawPart(0x0, 0x4, 0x0, 0xC, 31)
-	%drawPart(0x0, 0xC, 0x8, 0xC, 31)
-	%drawPart(0x8, 0xC, 0x8, 0x4, 31)
-	%drawPart(0x8, 0x4, 0x0, 0x4, 31)
+	bne %end%
 end:
 	lis r12, 0x8004
 	ori r12, r12, 0x2020
@@ -413,3 +408,67 @@ HOOK @ $80041634
 	bctr
 }
 #clTriangle
+HOOK @ $800428F8
+{
+	#if transparent, skip to end
+	mr r31, r3
+	lbz r0, 0x3(r4)
+	cmpwi r0, 0
+	bne %end%
+end:
+	lis r12, 0x8004
+	ori r12, r12, 0x2984
+	mtctr r12
+	bctr
+}
+
+clRectangle and gfAreaTriangle draws correct [Eon]
+.macro drawPart(<a>, <b>, <c>, <d>, <r>)
+{
+
+	lfs f2, <a>(<r>)
+	lfs f3, <b>(<r>)
+	lfs f4, <c>(<r>)
+	lfs f5, <d>(<r>)
+	stfs f2, 0x20(r1)
+	stfs f3, 0x24(r1)
+	stfs f4, 0x28(r1)
+	stfs f5, 0x2C(r1)
+
+	lfs f1, -0x68CC(r2)
+	addi r3, r1, 0x20
+	addi r4, r1, 0x10
+	li r5, 0
+	
+	lis r12, 0x8004
+	ori r12, r12, 0x1104
+	mtctr r12
+	bctrl
+
+}
+HOOK @ $80041F84
+{
+	
+	lwz r0, 0x0(r4)
+	stw r0, 0x10(r1)
+	%drawPart(0x0, 0x4, 0x0, 0xC, 31)
+	%drawPart(0x0, 0xC, 0x8, 0xC, 31)
+	%drawPart(0x8, 0xC, 0x8, 0x4, 31)
+	%drawPart(0x8, 0x4, 0x0, 0x4, 31)
+	lis r12, 0x8004
+	ori r12, r12, 0x2020
+	mtctr r12
+	bctr
+}
+HOOK @ $800428FC
+{
+	lwz r0, 0x0(r4)
+	stw r0, 0x10(r1)
+	%drawPart(0x0, 0x4, 0x8, 0xC, 31)
+	%drawPart(0x8, 0xC, 0x10, 0x14, 31)
+	%drawPart(0x10, 0x14, 0x0, 0x4, 31)
+	lis r12, 0x8004
+	ori r12, r12, 0x2984
+	mtctr r12
+	bctr	
+}

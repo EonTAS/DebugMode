@@ -191,29 +191,6 @@ HOOK @ $80978840
 
 gfAreaManager
 
-.macro drawPart(<a>, <b>, <c>, <d>, <r>)
-{
-
-	lfs f2, <a>(<r>)
-	lfs f3, <b>(<r>)
-	lfs f4, <c>(<r>)
-	lfs f5, <d>(<r>)
-	stfs f2, 0x20(r1)
-	stfs f3, 0x24(r1)
-	stfs f4, 0x28(r1)
-	stfs f5, 0x2C(r1)
-
-	lfs f1, -0x68CC(r2)
-	addi r3, r1, 0x20
-	addi r4, r1, 0x10
-	li r5, 0
-	
-	lis r12, 0x8004
-	ori r12, r12, 0x1104
-	mtctr r12
-	bctrl
-
-}
 
 #getAreaColour
 HOOK @ $80541FD0
