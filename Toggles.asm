@@ -414,10 +414,21 @@ debugFrameAdvanceFast:
 	li r5, 8 #
 	b writeValue
 fakePause:
+	cmpwi r4, 0
+	
+	lwz r3, 0x4(inputData)
+	ori r3, r3, 0x1000 #add start input (used by lra-start)=
+	stw r3, 0x4(inputData)
+
+	
+	li r4, 0
+	stbx r4, debugData, inputVariable
+	bne next
+	
 	lwz r3, 0xC(inputData)
 	ori r3, r3, 0x1000 #add start input to game
 	stw r3, 0xC(inputData)
-	#turn off debug pause
+	#turn off debug pause if first frame doing this
 	li r4, 0
 	li inputVariable, 0x1
 	
@@ -464,7 +475,8 @@ data:
 	#      HHHHPPPP;   ID  ;  max
 	word 0x00600004; word 0; word 1 	#l-r held dpaddown press 	#debug toggle
 	word 0x00001000; word 1; word 1 	#start press 				#debug pause
-	word 0x04000008; word 10;  word 0 	#x+dpad up	
+	word 0x04000008; word 10;  word 0 	#x+dpad up
+	word 0x04080000; word 10;  word 1 	#x+dpad up	
 	word 0x00000010; word 2; word 8 	#z press 					#frame advance
 	word 0x00000010; word 3; word 0 	#z press					#frame advance fast clear
 	word 0x00100000; word 3; word 30	#z held 					#frame advance fast, will count up to 60 frames and then start doing auto frame advance
