@@ -56,3 +56,41 @@ better stage render toggle so it can be reenabled safely
 
 #TEXT RENDERING BREAKS GRAPHICS BUT IS FIXED BY STAGE RENDERING, DONT WANT THAT
 #GET FIXED CAMERA WORKING
+Teams Thing
+HOOK @ $80689BAC
+{
+    mr r0, r27
+    lwz r27, 0x44(r3)
+    lwz r4, 0xC(r26)
+    andi. r4, r4, 0x40
+    li r4, 0
+    bne end
+    li r4, 1 #changeTeam
+end:
+    cmpwi r0, 0
+}
+HOOK @ $806998B0
+{
+    cmpwi r4, 1
+    beq changeCostume
+changeTeam:
+    addi r29, r29, 1
+    b %end%
+changeCostume:
+    addi r28, r28, 1
+}
+op nop @ $806998D0
+HOOK @ $80699BF8
+{
+    cmpwi r4, 1
+    beq changeCostume
+changeTeam:
+    subic. r29, r29, 1
+    b %end%
+changeCostume:
+    subi r28, r28, 1
+}
+op nop @ $80699C14
+
+
+#.include "source/Extras/DebugMode/Madeline.asm"

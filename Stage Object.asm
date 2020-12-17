@@ -82,6 +82,13 @@ ecbDraw:
 	lwz r12, 0x21C(r12)
 	mtctr r12
 	bctrl
+soCameraModule:
+	lwz r3, 0xD8(r31)
+	lwz r3, 0x60(r3)
+	lwz r12, 0x0(r3)
+	lwz r12, 0x64(r12)
+	mtctr r12
+	bctrl 
 end:
 	lwz r31, 0x10(r1)
 	lwz r0, 0x24(r1)
