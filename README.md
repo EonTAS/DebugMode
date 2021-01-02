@@ -11,6 +11,8 @@ Place the sora_enemy.rel into the `/pf/modules/` folder, this one file contains 
 Delete/comment out the `.include` for vPM's debug.asm if it is in your build.
 
 To use when code menu is in the build, set the `code menu activation` to `PM 3.6` 
+
+The RSBE01.map includes a lot of the functions i've written at the top so you can stick this into your `Dolphin/User/Maps` to be able to search the debug functions in dolphin.
 # Features
 Activate debug mode with L+R+DpadDown, you should hear a sound effect to indicate its enabled.
 
